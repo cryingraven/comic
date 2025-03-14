@@ -1,9 +1,15 @@
-import Image from 'next/image'
+import Banner from '@/components/hero/banner'
+import ComicSlider from '@/components/hero/comics'
+import Featured from '@/components/hero/featured'
+import ComicGenreTabs from '@/components/hero/genres'
 
 export default function Home() {
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-100">
-			<Image src="/logo.png" alt="Logo" width={500} height={500} />
+		<div className="flex flex-col mx-auto min-h-screen container">
+			<Banner />
+			<Featured />
+			<ComicSlider />
+			<ComicGenreTabs />
 		</div>
 	)
 }
