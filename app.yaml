@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data # Persist data
+    command: redis-server --requirepass comic24 --bind 0.0.0.0 --port 6379
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0.30
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: '24Comic123*'
+      MYSQL_DATABASE: '24comic'
+      MYSQL_USER: '24comic'
+      MYSQL_PASSWORD: 'User24Comic123*'
+      MYSQL_INITDB_SKIP_TZINFO: '1'
+      MYSQL_INIT_COMMAND: "SET GLOBAL sql_mode = 'ANSI_QUOTES,ERROR_FOR_DIVISION_BY_ZERO,IGNORE_SPACE,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE,PIPES_AS_CONCAT,REAL_AS_FLOAT,STRICT_ALL_TABLES';"
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: always
+volumes:
+  redis_data:
+  mysql_data:

@@ -1,0 +1,13 @@
+{
+	"name": "24comic",
+	"version": "1.0.0",
+	"description": "24comic",
+	"workspaces": [
+		"comic-web",
+		"comic-backend"
+	],
+	"dependencies": {
+		"@nestjs/config": "^4.0.1",
+		"comic-backend": "^0.0.1"
+	}
+}
