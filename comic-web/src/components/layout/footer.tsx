@@ -7,11 +7,21 @@ import {
 	Apple,
 	Google,
 } from '@mui/icons-material'
+import Image from 'next/image'
 
 const Footer = () => {
 	return (
-		<footer>
+		<footer className="py-10">
 			<Container maxWidth="lg">
+				<div className="flex justify-center m-3">
+					<Image
+						src={'/logo.png'}
+						alt="Logo"
+						width={200}
+						height={200}
+						className="h-12"
+					/>
+				</div>
 				<div className="flex justify-center space-x-2">
 					<IconButton href="https://facebook.com" target="_blank">
 						<Facebook />

@@ -10,6 +10,7 @@ import {
   BelongsTo,
   ForeignKey,
   HasMany,
+  Default,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { Chapter } from './chapter.model';
@@ -35,6 +36,15 @@ export class Comic extends Model {
   @Column
   cover: string;
 
+  @Column
+  banner: string;
+
+  @Column
+  comic_type: string;
+
+  @Column
+  status: string;
+
   @ForeignKey(() => User)
   @Column
   user_id: number;
@@ -47,6 +57,22 @@ export class Comic extends Model {
 
   @Column
   genre: string;
+
+  @Default(0)
+  @Column
+  views: number;
+
+  @Default(0)
+  @Column
+  likes: number;
+
+  @Default(0)
+  @Column
+  shares: number;
+
+  @Default(0)
+  @Column
+  comments: number;
 
   @CreatedAt
   created_at: Date;

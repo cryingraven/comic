@@ -3,6 +3,15 @@
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { TextField, Button, Container, Typography } from '@mui/material'
 import { Google } from '@mui/icons-material'
+import useStore from '@/store'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+	GoogleAuthProvider,
+	signInWithEmailAndPassword,
+	signInWithPopup,
+} from 'firebase/auth'
+import { firebaseAuth } from '@/providers/firebase'
 
 type Inputs = {
 	email: string
@@ -10,25 +19,66 @@ type Inputs = {
 }
 
 const LoginPage = () => {
+	const router = useRouter()
+	const store = useStore()
+	const [error, setError] = useState<string | null>(null)
+	const [loading, setLoading] = useState<boolean>(false)
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
 	} = useForm<Inputs>()
 
-	const onSubmit: SubmitHandler<Inputs> = (data) => {
-		console.log(data)
+	const onSubmit: SubmitHandler<Inputs> = async (data) => {
+		setLoading(true)
+		setError(null)
+		try {
+			const cred = await signInWithEmailAndPassword(
+				firebaseAuth,
+				data.email,
+				data.password
+			)
+			const user = cred.user
+			const token = await user.getIdToken()
+			store.setUser(user)
+			store.setToken(token)
+			router.push('/')
+		} catch (error) {
+			console.log(error)
+			setError('Failed to login. Incorrect email or password.')
+		}
+		setLoading(false)
+	}
+
+	const signInWithGoogle = async () => {
+		try {
+			const provider = new GoogleAuthProvider()
+			const cred = await signInWithPopup(firebaseAuth, provider)
+			const user = cred.user
+			const token = await user.getIdToken()
+			store.setUser(user)
+			store.setToken(token)
+			router.push('/')
+		} catch (error) {
+			console.log(error)
+			setError('Failed to login with Google.')
+		}
 	}
 
 	return (
-		<Container className="flex items-center justify-center min-h-screen">
+		<Container className="flex items-center justify-center md:mt-0 mt-10 md:min-h-screen">
 			<form
 				onSubmit={handleSubmit(onSubmit)}
-				className="bg-white p-8 rounded shadow-md w-full max-w-sm"
+				className="bg-white p-4 md:p-8 rounded shadow-md w-full max-w-sm"
 			>
 				<Typography variant="h5" className="mb-4">
 					Login
 				</Typography>
+				{error && (
+					<Typography variant="body2" className="mt-2 text-red-500 text-center">
+						{error}
+					</Typography>
+				)}
 				<TextField
 					{...register('email', { required: 'Email is required' })}
 					label="Email"
@@ -58,7 +108,8 @@ const LoginPage = () => {
 					variant="contained"
 					color="primary"
 					fullWidth
-					className="mt-2"
+					className="mt-2 rounded-full"
+					disabled={loading}
 				>
 					Login
 				</Button>
@@ -67,7 +118,7 @@ const LoginPage = () => {
 					variant="outlined"
 					color="primary"
 					fullWidth
-					className="mt-2"
+					className="mt-2  rounded-full"
 				>
 					Register
 				</Button>
@@ -75,12 +126,14 @@ const LoginPage = () => {
 					Or
 				</Typography>
 				<Button
+					className="rounded-full"
 					variant="contained"
 					color="info"
 					fullWidth
+					onClick={signInWithGoogle}
 					startIcon={<Google />}
 				>
-					Login with Google
+					Continue with Google
 				</Button>
 			</form>
 		</Container>

@@ -73,7 +73,7 @@ const ComicGenreTabs = () => {
 	}
 
 	return (
-		<div className="flex container flex-col mx-auto p-4 mt-4">
+		<div className="flex container flex-col mx-auto p-4 md:p-10 mt-4">
 			<h1 className="text-3xl font-bold mb-4">Explore Your Favorite Genres</h1>
 			<Tabs
 				value={value}
@@ -82,6 +82,7 @@ const ComicGenreTabs = () => {
 				scrollButtons="auto"
 				aria-label="comic genres"
 				className="mb-4"
+				indicatorColor="primary"
 			>
 				{genres.map((genre, index) => (
 					<Tab key={index} label={genre} className="capitalize" />
@@ -89,7 +90,7 @@ const ComicGenreTabs = () => {
 			</Tabs>
 			<div className="flex justify-between items-center mb-4">
 				<h2 className="text-xl font-semibold">{genres[value]}</h2>
-				<button className="flex items-center text-blue-500">
+				<button className="flex items-center text-orange-500">
 					View More <ArrowForwardIos className="ml-1" />
 				</button>
 			</div>

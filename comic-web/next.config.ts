@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
 			'images.pexels.com',
 			'via.placeholder.com',
 			'images.24comic.com',
+			'lh3.googleusercontent.com',
 		],
 	},
 }

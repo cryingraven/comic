@@ -15,6 +15,7 @@ import { Notification } from './models/notification.model';
 import { Sequelize } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
 import { Favorites } from './models/favorites.model';
+import { akoma } from './migrations/akoma';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -29,25 +30,26 @@ export async function cli() {
     });
     console.log('Welcome to comic CLI');
     console.log('create - create table');
+    console.log('migrate_akoma - migrate akoma data');
     rl.question('What do you want to do? ', async (answer) => {
+      const config = app.get(ConfigService);
+
+      const databaseHost = config.get('DATABASE_HOST');
+      const databasePort = config.get('DATABASE_PORT');
+      const databaseUsername = config.get('DATABASE_USERNAME');
+      const databasePassword = config.get('DATABASE_PASSWORD');
+      const databaseName = config.get('DATABASE_NAME');
+
+      const sequelize = new Sequelize({
+        dialect: 'mysql',
+        host: databaseHost,
+        port: databasePort,
+        username: databaseUsername,
+        password: databasePassword,
+        database: databaseName,
+      });
+
       if (answer === 'create') {
-        const config = app.get(ConfigService);
-
-        const databaseHost = config.get('DATABASE_HOST');
-        const databasePort = config.get('DATABASE_PORT');
-        const databaseUsername = config.get('DATABASE_USERNAME');
-        const databasePassword = config.get('DATABASE_PASSWORD');
-        const databaseName = config.get('DATABASE_NAME');
-
-        const sequelize = new Sequelize({
-          dialect: 'mysql',
-          host: databaseHost,
-          port: databasePort,
-          username: databaseUsername,
-          password: databasePassword,
-          database: databaseName,
-        });
-
         const queryInterface = sequelize.getQueryInterface();
         await queryInterface.createTable('users', User.getAttributes());
         await queryInterface.createTable('comics', Comic.getAttributes());
@@ -73,6 +75,10 @@ export async function cli() {
           Favorites.getAttributes(),
         );
         console.log('Table created');
+      } else if (answer === 'migrate_akoma') {
+        const akomaMongoUri = config.get('AKOMA_MONGO_URI');
+
+        await akoma(sequelize, akomaMongoUri);
       }
 
       rl.close();

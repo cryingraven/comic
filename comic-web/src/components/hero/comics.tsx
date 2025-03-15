@@ -10,7 +10,7 @@ const TopComicsPage = () => {
 	}))
 
 	return (
-		<div className="container mx-auto mt-4">
+		<div className="container mx-auto mt-4 p-5 md:p-10">
 			<h1 className="text-3xl font-bold mb-4">Top Comics</h1>
 			<div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
 				{comics.map((comic, index) => (

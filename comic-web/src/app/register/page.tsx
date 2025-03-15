@@ -2,6 +2,13 @@
 
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { TextField, Button, Container, Typography } from '@mui/material'
+import useStore from '@/store'
+import { useState } from 'react'
+import {
+	createUserWithEmailAndPassword,
+	sendEmailVerification,
+} from 'firebase/auth'
+import { firebaseAuth } from '@/providers/firebase'
 type Inputs = {
 	email: string
 	password: string
@@ -9,14 +16,32 @@ type Inputs = {
 }
 
 const RegisterPage = () => {
+	const store = useStore()
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState('')
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
 	} = useForm<Inputs>()
 
-	const onSubmit: SubmitHandler<Inputs> = (data) => {
-		console.log(data)
+	const onSubmit: SubmitHandler<Inputs> = async (data) => {
+		setIsLoading(true)
+		try {
+			const cred = await createUserWithEmailAndPassword(
+				firebaseAuth,
+				data.email,
+				data.password
+			)
+			const token = await cred.user.getIdToken()
+			await sendEmailVerification(cred.user)
+			store.setUser(cred.user)
+			store.setToken(token)
+		} catch (error: unknown) {
+			console.log(error)
+			setError('Failed to register user')
+		}
+		setIsLoading(false)
 	}
 
 	return (
@@ -28,6 +53,11 @@ const RegisterPage = () => {
 				<Typography variant="h5" className="mb-4">
 					Register
 				</Typography>
+				{error && (
+					<Typography variant="body2" className="mt-2 text-red-500 text-center">
+						{error}
+					</Typography>
+				)}
 				<TextField
 					{...register('email', { required: 'Email is required' })}
 					label="Email"
@@ -65,6 +95,7 @@ const RegisterPage = () => {
 					color="primary"
 					fullWidth
 					className="mt-2"
+					disabled={isLoading}
 				>
 					Register
 				</Button>

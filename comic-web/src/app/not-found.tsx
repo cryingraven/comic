@@ -20,6 +20,7 @@ const NotFoundPage = () => {
 				<Button
 					variant="contained"
 					color="primary"
+					className="mt-5 rounded-full p-4"
 					onClick={() => window.history.back()}
 				>
 					Go Back
