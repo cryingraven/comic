@@ -87,7 +87,7 @@ const FAQPage = () => {
 						<h3 className="text-xl font-semibold">Bagaimana cara menghapus atau menutup akun di 24comic.com?</h3>
 						<p className="text-gray-700">
 					Untuk melakukan penutupan akun di 24comic.com, silakan menghubungi
-					24comic.com@gmail.com dengan menyertakan "PENUTUPAN AKUN" sebagai
+					24comic.com@gmail.com dengan menyertakan &quote;PENUTUPAN AKUN!&quote; sebagai
 					subject email.
 				</p>
 			</div>

@@ -68,7 +68,9 @@ const comics = [
 const ComicGenreTabs = () => {
 	const [value, setValue] = useState(0)
 
-	const handleChange = (event, newValue) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const handleChange = (event: any, newValue: any) => {
+		console.log(event)
 		setValue(newValue)
 	}
 
