@@ -28,6 +28,9 @@ export class User extends Model {
   email: string | null;
 
   @Column
+  fullname: string | null;
+
+  @Column
   phone_number: string | null;
 
   @Default(0)

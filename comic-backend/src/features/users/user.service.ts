@@ -6,7 +6,7 @@ import { User } from 'src/models/user.model';
 export class UserService {
   constructor(@InjectModel(User) private user: typeof User) {}
 
-  getAll() {
-    return this.user.findAll();
+  getUserProfile(firebaseUid: string) {
+    return this.user.findOne({ where: { firebase_user_id: firebaseUid } });
   }
 }

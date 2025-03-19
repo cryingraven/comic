@@ -1,78 +1,45 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tabs, Tab } from '@mui/material'
 import { ArrowForwardIos } from '@mui/icons-material'
-import Image from 'next/image'
+import { Genre } from '@/models/genre'
+import { Comic } from '@/models/comic'
+import DefaultBackendService from '@/services/default'
+import ComicItem from '../items/comic'
+import Link from 'next/link'
 
-const genres = ['Action', 'Adventure', 'Comedy', 'Drama']
-const comics = [
-	[
-		{
-			title: 'Comic 1',
-			description: 'Description 1',
-			cover:
-				'https://images.pexels.com/photos/1234567/pexels-photo-1234567.jpeg',
-		},
-		{
-			title: 'Comic 2',
-			description: 'Description 2',
-			cover:
-				'https://images.pexels.com/photos/1234568/pexels-photo-1234568.jpeg',
-		},
-	],
-	[
-		{
-			title: 'Comic 3',
-			description: 'Description 3',
-			cover:
-				'https://images.pexels.com/photos/1234569/pexels-photo-1234569.jpeg',
-		},
-		{
-			title: 'Comic 4',
-			description: 'Description 4',
-			cover:
-				'https://images.pexels.com/photos/1234570/pexels-photo-1234570.jpeg',
-		},
-	],
-	[
-		{
-			title: 'Comic 5',
-			description: 'Description 5',
-			cover:
-				'https://images.pexels.com/photos/1234571/pexels-photo-1234571.jpeg',
-		},
-		{
-			title: 'Comic 6',
-			description: 'Description 6',
-			cover:
-				'https://images.pexels.com/photos/1234572/pexels-photo-1234572.jpeg',
-		},
-	],
-	[
-		{
-			title: 'Comic 7',
-			description: 'Description 7',
-			cover:
-				'https://images.pexels.com/photos/1234573/pexels-photo-1234573.jpeg',
-		},
-		{
-			title: 'Comic 8',
-			description: 'Description 8',
-			cover:
-				'https://images.pexels.com/photos/1234574/pexels-photo-1234574.jpeg',
-		},
-	],
-]
+interface ComicGenreTabsProps {
+	genres: Genre[]
+}
 
-const ComicGenreTabs = () => {
+const ComicGenreTabs = ({ genres }: ComicGenreTabsProps) => {
 	const [value, setValue] = useState(0)
+	const [comics, setComics] = useState<Comic[]>([])
 
+	const fetchComics = async () => {
+		if (genres.length > 0) {
+			const response = await DefaultBackendService.instance().getComics(
+				genres[value].name,
+				'',
+				0,
+				12,
+				'created_at::desc'
+			)
+
+			setComics(response)
+		}
+	}
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const handleChange = (event: any, newValue: any) => {
 		console.log(event)
 		setValue(newValue)
 	}
+
+	useEffect(() => {
+		fetchComics()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [value])
 
 	return (
 		<div className="flex container flex-col mx-auto p-4 md:p-10 mt-4">
@@ -87,28 +54,18 @@ const ComicGenreTabs = () => {
 				indicatorColor="primary"
 			>
 				{genres.map((genre, index) => (
-					<Tab key={index} label={genre} className="capitalize" />
+					<Tab key={index} label={genre.name} className="capitalize" />
 				))}
 			</Tabs>
 			<div className="flex justify-between items-center mb-4">
-				<h2 className="text-xl font-semibold">{genres[value]}</h2>
-				<button className="flex items-center text-orange-500">
+				<h2 className="text-xl font-semibold">{genres[value].name}</h2>
+				<Link href={'/genres'} className="flex items-center text-orange-500">
 					View More <ArrowForwardIos className="ml-1" />
-				</button>
+				</Link>
 			</div>
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-				{comics[value].map((comic, index) => (
-					<div key={index} className="bg-white p-4 shadow rounded">
-						<Image
-							src={comic.cover}
-							alt={comic.title}
-							width={500}
-							height={300}
-							className="w-full h-64 object-cover rounded"
-						/>
-						<h3 className="text-lg font-semibold mt-2">{comic.title}</h3>
-						<p className="text-gray-600">{comic.description}</p>
-					</div>
+			<div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+				{comics.map((comic, index) => (
+					<ComicItem key={index} data={comic} />
 				))}
 			</div>
 		</div>

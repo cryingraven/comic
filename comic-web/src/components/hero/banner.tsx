@@ -30,7 +30,7 @@ const Banner = () => {
 					<Button
 						variant="contained"
 						className="btnOrange w-full md:w-auto py-4 px-4 rounded-full"
-						href="https://cms.koomik.id/cms"
+						href="/cms"
 						color="warning"
 						fullWidth
 					>

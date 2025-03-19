@@ -16,6 +16,9 @@ import { Sequelize } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
 import { Favorites } from './models/favorites.model';
 import { akoma } from './migrations/akoma';
+import { StorageService } from './services/storage.service';
+import { akoma_images } from './migrations/akoma-images';
+import { koomik } from './migrations/koomik';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -31,8 +34,11 @@ export async function cli() {
     console.log('Welcome to comic CLI');
     console.log('create - create table');
     console.log('migrate_akoma - migrate akoma data');
+    console.log('migrate_koomik - migrate koomik data');
+    console.log('migrate_akoma_images - migrate akoma images');
     rl.question('What do you want to do? ', async (answer) => {
       const config = app.get(ConfigService);
+      const storage = app.get(StorageService);
 
       const databaseHost = config.get('DATABASE_HOST');
       const databasePort = config.get('DATABASE_PORT');
@@ -79,10 +85,29 @@ export async function cli() {
         const akomaMongoUri = config.get('AKOMA_MONGO_URI');
 
         await akoma(sequelize, akomaMongoUri);
+      } else if (answer === 'migrate_akoma_images') {
+        const akomaMongoUri = config.get('AKOMA_MONGO_URI');
+        await akoma_images(storage, akomaMongoUri);
+      } else if (answer === 'migrate_koomik') {
+        const koomikDatabaseHost = config.get('KOOMIK_DATABASE_HOST');
+        const koomikDatabasePort = config.get('KOOMIK_DATABASE_PORT');
+        const koomikDatabaseUsername = config.get('KOOMIK_DATABASE_USERNAME');
+        const koomikDatabasePassword = config.get('KOOMIK_DATABASE_PASSWORD');
+        const koomikDatabaseName = config.get('KOOMIK_DATABASE_NAME');
+
+        const koomikSequelize = new Sequelize({
+          dialect: 'mysql',
+          host: koomikDatabaseHost,
+          port: koomikDatabasePort,
+          username: koomikDatabaseUsername,
+          password: koomikDatabasePassword,
+          database: koomikDatabaseName,
+        });
+
+        await koomik(sequelize, koomikSequelize);
       }
 
       rl.close();
-      process.exit(0);
     });
   });
 

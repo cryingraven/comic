@@ -19,7 +19,7 @@ export class Chapter extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column
-  id: number;
+  chapter_id: number;
 
   @ForeignKey(() => Comic)
   @Column
@@ -36,6 +36,22 @@ export class Chapter extends Model {
 
   @Column
   image: string;
+
+  @Default(0)
+  @Column
+  likes: number;
+
+  @Default(0)
+  @Column
+  views: number;
+
+  @Default(0)
+  @Column
+  shares: number;
+
+  @Default(0)
+  @Column
+  comments: number;
 
   @Default(0)
   @Column

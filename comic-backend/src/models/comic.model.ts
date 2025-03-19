@@ -14,6 +14,7 @@ import {
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { Chapter } from './chapter.model';
+import { TEXT } from 'sequelize';
 
 @Table({
   tableName: 'comics',
@@ -27,7 +28,7 @@ export class Comic extends Model {
   @Column
   title: string;
 
-  @Column
+  @Column(TEXT('long'))
   description: string;
 
   @Column
@@ -64,6 +65,10 @@ export class Comic extends Model {
 
   @Default(0)
   @Column
+  subscribers: number;
+
+  @Default(0)
+  @Column
   likes: number;
 
   @Default(0)
@@ -73,6 +78,10 @@ export class Comic extends Model {
   @Default(0)
   @Column
   comments: number;
+
+  @Default(false)
+  @Column
+  is_editor_choice: boolean;
 
   @CreatedAt
   created_at: Date;

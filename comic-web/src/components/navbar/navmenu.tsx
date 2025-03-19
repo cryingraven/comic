@@ -12,7 +12,7 @@ const NavMenu = () => {
 				Home
 			</Link>
 			<Link
-				href="/genre"
+				href="/genres"
 				className="text-gray-700 sm:block hover:text-black text-lg"
 			>
 				Genre

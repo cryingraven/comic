@@ -36,4 +36,16 @@ export class StorageService {
   public async getFileURL(fileName: string) {
     return `https://images.24comic.com/${fileName}`;
   }
+
+  public async saveFile(fileName: string, buffer: Buffer, mimetype: string) {
+    const params = {
+      Bucket: this.bucketName,
+      Key: fileName,
+      Body: buffer,
+      ContentType: mimetype,
+    };
+    const command = new PutObjectCommand(params);
+    await this.s3Client.send(command);
+    return fileName;
+  }
 }

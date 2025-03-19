@@ -11,7 +11,7 @@ import Image from 'next/image'
 
 const Footer = () => {
 	return (
-		<footer className="py-10">
+		<footer className="py-10 bg-blue-50">
 			<Container maxWidth="lg">
 				<div className="flex justify-center m-3">
 					<Image

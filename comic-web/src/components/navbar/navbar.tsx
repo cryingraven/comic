@@ -7,14 +7,19 @@ import NavbarUserProfile from './userprofile'
 import { Search } from '@mui/icons-material'
 import NavbarSearch from './search'
 import NavMenu from './navmenu'
+import { usePathname } from 'next/navigation'
+import clsx from 'clsx'
 
 const Navbar = () => {
+	const location = usePathname()
 	const [isOpen, setIsOpen] = useState(false)
 	const [isSearchOpen, setIsSearchOpen] = useState(false)
 
 	return (
-		<nav className="bg-white p-4">
-			<div className="container mx-auto flex justify-between items-center">
+		<nav
+			className={clsx('bg-white p-4', location.includes('/read') && 'hidden')}
+		>
+			<div className="container mx-auto flex items-center justify-between md:justify-center">
 				<div className="text-black text-lg">
 					<Link href="/" className="text-black text-lg">
 						<Image
@@ -26,7 +31,7 @@ const Navbar = () => {
 						/>
 					</Link>
 				</div>
-				<div className="hidden md:flex space-x-4">
+				<div className="hidden md:flex-grow md:flex md:ml-8 space-x-4">
 					<NavMenu />
 				</div>
 				<div className="md:hidden">

@@ -2,14 +2,21 @@ import { Module } from '@nestjs/common';
 import { AppController } from '../controllers/app.controller';
 import { AppService } from '../services/app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { FirebaseModule } from './firebase/firebase.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { models } from 'src/models';
 import { UserModule } from 'src/features/users/user.module';
+import { ReaderModule } from 'src/features/reader/reader.module';
+import { PaymentModule } from 'src/features/payment/payment.module';
+import { StorageService } from 'src/services/storage.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    CacheModule.register({
+      ttl: 5000,
       isGlobal: true,
     }),
     SequelizeModule.forRootAsync({
@@ -27,11 +34,13 @@ import { UserModule } from 'src/features/users/user.module';
       }),
       inject: [ConfigService],
     }),
-    FirebaseModule,
     UserModule,
+    ReaderModule,
+    PaymentModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, StorageService],
+  exports: [StorageService],
 })
 export class AppModule {
   constructor() {}
