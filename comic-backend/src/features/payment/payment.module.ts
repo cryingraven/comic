@@ -6,8 +6,19 @@ import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
 import { Payment } from 'src/models/payment.model';
 import { PaymentMethod } from 'src/models/paymentmethod.model';
+import { Comic } from 'src/models/comic.model';
+import { Chapter } from 'src/models/chapter.model';
 @Module({
-  imports: [SequelizeModule.forFeature([User, Access, Payment, PaymentMethod])],
+  imports: [
+    SequelizeModule.forFeature([
+      User,
+      Access,
+      Comic,
+      Chapter,
+      Payment,
+      PaymentMethod,
+    ]),
+  ],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService],

@@ -1,3 +1,4 @@
+import { SaveProfile } from '@/models/profile'
 import axios from 'axios'
 
 export default class AppService {
@@ -30,6 +31,17 @@ export default class AppService {
 
 	async get(url: string) {
 		const response = await AppService._axios.get(url)
+		return response.data.data
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	async post(url: string, data: any) {
+		const response = await AppService._axios.post(url, data)
+		return response.data.data
+	}
+
+	async saveProfile(data: SaveProfile) {
+		const response = await AppService._axios.post('/users', data)
 		return response.data.data
 	}
 }

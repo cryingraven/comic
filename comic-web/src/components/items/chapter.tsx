@@ -5,6 +5,7 @@ import Image from 'next/image'
 import moment from 'moment'
 import Link from 'next/link'
 import { formatNumber } from '@/utils/format'
+import clsx from 'clsx'
 
 interface ChapterItemProps {
 	chapter: Chapter
@@ -23,8 +24,16 @@ const ChapterItem = ({ chapter }: ChapterItemProps) => {
 				/>
 				<div className="flex flex-col md:flex-row flex-grow md:items-center">
 					<div className="flex flex-col ml-4 flex-grow">
-						<p className="text-gray-500 text-sm md:text-md">
-							{chapter.price ? chapter.price : 'Free'}
+						<p
+							className={clsx(
+								'text-sm md:text-md',
+								chapter.price > 0 && 'text-orange-500 font-bold',
+								'text-gray-500'
+							)}
+						>
+							{chapter.price
+								? `${chapter.price} Coin - ${(chapter.price * 2500).toLocaleString('id-ID')} IDR`
+								: 'Free'}
 						</p>
 						<h3 className="text-md md:text-lg font-semibold">
 							{chapter.title}

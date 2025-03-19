@@ -11,7 +11,8 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<SWRConfig
 			value={{
-				refreshInterval: 30000,
+				refreshInterval: 60000,
+				revalidateOnReconnect: true,
 				fetcher: AppService.instance(store.token).get,
 			}}
 		>

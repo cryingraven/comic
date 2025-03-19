@@ -44,7 +44,7 @@ const ComicReadingPage = () => {
 		`/r/navigation/${comicId}/${chapterId}`
 	)
 
-	const [showAppBar, setShowAppBar] = useState(false)
+	const [showAppBar, setShowAppBar] = useState(true)
 
 	const toggleAppBar = () => {
 		setShowAppBar(!showAppBar)
@@ -148,7 +148,7 @@ const ComicReadingPage = () => {
 			>
 				<ArrowUpwardRounded />
 			</Button>
-			{comic && chapter && (
+			{comic && chapter && chapter.price > 0 && (
 				<PurchaseModal
 					showModal={showPurchaseModal}
 					onClose={() => {

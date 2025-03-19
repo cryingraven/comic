@@ -6,7 +6,7 @@ export class FirebaseGuard implements CanActivate {
   constructor(private readonly firebaseService: FirebaseService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.user;
+    const authHeader = request.headers.authorization;
 
     if (!authHeader) return false;
 

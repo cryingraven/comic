@@ -46,4 +46,10 @@ export default class DefaultBackendService {
 		const json = await response.json()
 		return json.data
 	}
+
+	async getAllPaymentMethods() {
+		const response = await fetch(`${this.baseUrl}/payment/methods`)
+		const json = await response.json()
+		return json.data
+	}
 }

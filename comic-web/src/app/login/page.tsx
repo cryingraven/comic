@@ -12,6 +12,7 @@ import {
 	signInWithPopup,
 } from 'firebase/auth'
 import { firebaseAuth } from '@/providers/firebase'
+import AppService from '@/services/app'
 
 type Inputs = {
 	email: string
@@ -40,6 +41,9 @@ const LoginPage = () => {
 			)
 			const user = cred.user
 			const token = await user.getIdToken()
+
+			await AppService.instance(token).saveProfile({})
+
 			store.setUser(user)
 			store.setToken(token)
 			router.push('/')
@@ -56,6 +60,9 @@ const LoginPage = () => {
 			const cred = await signInWithPopup(firebaseAuth, provider)
 			const user = cred.user
 			const token = await user.getIdToken()
+
+			await AppService.instance(token).saveProfile({})
+
 			store.setUser(user)
 			store.setToken(token)
 			router.push('/')

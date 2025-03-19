@@ -32,4 +32,8 @@ export class FirebaseService {
   validateToken(token: string) {
     return this.auth.verifyIdToken(token);
   }
+
+  getUserByUid(uid: string) {
+    return this.auth.getUser(uid);
+  }
 }

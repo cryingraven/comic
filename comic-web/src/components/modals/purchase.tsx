@@ -35,14 +35,31 @@ const PurchaseModal = ({
 					Purchase {comic?.title}&apos;s Episode
 				</Typography>
 				<Typography variant="body1">
-					Are you sure you want to purchase this comic episode using{' '}
-					{chapter?.price} coins?
+					Are you sure you want to purchase this comic episode ?
 				</Typography>
-				<div className="flex md:flex-row flex-col gap-2 my-2">
-					<Button variant="contained" color="primary" onClick={purchase}>
-						Confirm
+				<div className="flex flex-col gap-2 mt-8">
+					<Button
+						variant="contained"
+						color="warning"
+						className="p-2 rounded-full"
+						onClick={purchase}
+					>
+						Pay Using {chapter?.price} Coins
 					</Button>
-					<Button variant="outlined" color="secondary" onClick={onClose}>
+					<Button
+						variant="contained"
+						color="primary"
+						className="p-2 rounded-full"
+						onClick={purchase}
+					>
+						Pay IDR {(chapter?.price * 2500).toLocaleString('id-ID')}
+					</Button>
+					<Button
+						variant="outlined"
+						color="info"
+						className="p-2 rounded-full"
+						onClick={onClose}
+					>
 						Cancel
 					</Button>
 				</div>

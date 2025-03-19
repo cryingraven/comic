@@ -1,6 +1,8 @@
 'use client'
 
 import useStore from '@/store'
+import { formatNumber } from '@/utils/format'
+import { ArrowDropDownOutlined, Diversity2Rounded } from '@mui/icons-material'
 import { Button } from '@mui/material'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -17,11 +19,11 @@ const UserMenu = () => {
 
 	return (
 		<>
-			<div className="relative">
+			<div className="relative w-full">
 				{!isLoading && (
 					<button
 						onClick={toggleMenu}
-						className="flex items-center focus:outline-none"
+						className="flex items-center focus:outline-none w-full"
 					>
 						<Image
 							src={store.user?.photoURL || '/default-avatar.png'}
@@ -30,39 +32,47 @@ const UserMenu = () => {
 							width={40}
 							height={40}
 						/>
-						<span className="ml-2 text-gray-700">
-							{store.user?.displayName || 'User'}
-						</span>
+						<div className="ml-2 text-gray-700 flex flex-col sm:flex-grow sm:w-full text-start">
+							<p> {store.user?.displayName || 'User'}</p>
+							<p className="text-sm text-orange-500">
+								{formatNumber(data?.balance || 0)} Coin
+							</p>
+						</div>
+						<ArrowDropDownOutlined className="text-gray-700 md:hidden" />
 					</button>
 				)}
 				{isOpen && (
-					<div className="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-50">
+					<div className="md:absolute right-0 mt-2 md:bg-white border sm:w-full md:w-48 rounded-md md:shadow-lg z-50">
 						<Link
 							href={'/profile'}
-							className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+							className="block px-4 py-2 text-gray-800 hover:bg-gray-200 text-md"
+							onClick={() => setIsOpen(false)}
 						>
 							Profile
 						</Link>
 						<Link
 							href={'/top-up'}
-							className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+							className="block px-4 py-2 text-gray-800 hover:bg-gray-200 text-md"
+							onClick={() => setIsOpen(false)}
 						>
 							Top Up Balance
 						</Link>
 						<Link
 							href="/cms"
-							className="block px-4 py-2 text-gray-800 hover:bg-gray-200"
+							className="block px-4 py-2 text-gray-800 hover:bg-gray-200 text-md"
+							onClick={() => setIsOpen(false)}
 						>
 							CMS
 						</Link>
-						<Button
+						<div
 							onClick={() => {
 								store.signOut()
+								setIsOpen(false)
 							}}
-							className="block px-4 py-2 text-gray-800 hover:bg-gray-200 capitalize w-full text-left"
+							className="block px-4 py-2 cursor-pointer text-gray-800 hover:bg-gray-200 capitalize w-full text-left text-md"
 						>
 							Logout
-						</Button>
+						</div>
 					</div>
 				)}
 			</div>
