@@ -8,6 +8,7 @@ import { Payment } from 'src/models/payment.model';
 import { PaymentMethod } from 'src/models/paymentmethod.model';
 import { Comic } from 'src/models/comic.model';
 import { Chapter } from 'src/models/chapter.model';
+import { FirebaseModule } from 'src/modules/firebase/firebase.module';
 @Module({
   imports: [
     SequelizeModule.forFeature([
@@ -18,6 +19,7 @@ import { Chapter } from 'src/models/chapter.model';
       Payment,
       PaymentMethod,
     ]),
+    FirebaseModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService],

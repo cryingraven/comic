@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AppBar, Toolbar, Typography, Card, Button } from '@mui/material'
 import 'tailwindcss/tailwind.css'
 import { useParams, useRouter } from 'next/navigation'
@@ -21,13 +21,17 @@ import { Comic } from '@/models/comic'
 import Link from 'next/link'
 import { formatNumber } from '@/utils/format'
 import PurchaseModal from '@/components/modals/purchase'
+import useStore from '@/store'
+import AppService from '@/services/app'
 
 const ComicReadingPage = () => {
+	const store = useStore()
 	const router = useRouter()
 	const query = useParams()
 	const comicId = query.comic_id
 	const chapterId = query.chapter_id
 	const [showPurchaseModal, setShowPurchaseModal] = useState(true)
+	const [pages, setPages] = useState<Page[]>([])
 
 	const { data: comic, isLoading: comicLoading } = useSWR<Comic>(
 		`/r/comics/${comicId}`
@@ -36,13 +40,58 @@ const ComicReadingPage = () => {
 		`/r/chapters/${chapterId}`
 	)
 
-	const { data: pages, isLoading: pagesLoading } = useSWR<Page[]>(
-		`/r/pages/${chapterId}`
-	)
-
 	const { data: navigation } = useSWR<ChapterNavigation>(
 		`/r/navigation/${comicId}/${chapterId}`
 	)
+
+	const fetchPages = async () => {
+		if (chapter) {
+			let newPages: Page[] = []
+
+			if (chapter?.price === 0) {
+				newPages = await AppService.instance(store.token || '').get(
+					`/r/pages/${chapterId}`
+				)
+			} else {
+				const access = await AppService.instance(store.token || '').get(
+					`/r/access/${comicId}/${chapterId}`
+				)
+				if (access) {
+					newPages = await AppService.instance(store.token || '').get(
+						`/r/paid-pages/${chapterId}`
+					)
+
+					setShowPurchaseModal(false)
+				}
+			}
+
+			setPages(newPages)
+		}
+	}
+
+	const buyWithCoin = async () => {
+		if (chapter) {
+			try {
+				await AppService.instance(store.token || '').post(
+					`/payment/buy/${comicId}/${chapterId}`,
+					{}
+				)
+
+				const newPages = await AppService.instance(store.token || '').get(
+					`/r/paid-pages/${chapterId}`
+				)
+
+				setPages(newPages)
+			} catch (err) {
+				console.log(err)
+			}
+		}
+	}
+
+	useEffect(() => {
+		fetchPages()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [chapter])
 
 	const [showAppBar, setShowAppBar] = useState(true)
 
@@ -128,8 +177,8 @@ const ComicReadingPage = () => {
 			<div className="flex flex-col items-center container mx-auto max-w-[1024px]">
 				{!comicLoading &&
 					!chapterLoading &&
-					!pagesLoading &&
-					pages?.map((page, index) => (
+					pages &&
+					pages.map((page, index) => (
 						<Card key={index} className="w-full">
 							<Image
 								src={getImageUrl(page.image)}
@@ -156,6 +205,7 @@ const ComicReadingPage = () => {
 					}}
 					comic={comic}
 					onPurchase={() => {
+						buyWithCoin()
 						setShowPurchaseModal(false)
 					}}
 					chapter={chapter}

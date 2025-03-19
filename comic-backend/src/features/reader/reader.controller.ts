@@ -12,12 +12,13 @@ import { ArrayResponseDto } from 'src/dto/arrayresponse.dto';
 import { BasicResponseDto } from 'src/dto/basicresponse.dto';
 import { FirebaseGuard } from 'src/modules/firebase/firebase.guard';
 import { UserRequest } from 'src/types/user.type';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('r')
 export class ReaderController {
   constructor(private readonly readerService: ReaderService) {}
 
+  @CacheTTL(60)
   @Get('comics')
   @UseInterceptors(CacheInterceptor)
   async comics(
@@ -37,6 +38,7 @@ export class ReaderController {
     return ArrayResponseDto.success('Comics fetched successfully', data);
   }
 
+  @CacheTTL(300)
   @Get('comics/:id')
   @UseInterceptors(CacheInterceptor)
   async comic(@Param('id') id: number): Promise<BasicResponseDto> {
@@ -56,6 +58,7 @@ export class ReaderController {
     return ArrayResponseDto.success('Chapters fetched successfully', data);
   }
 
+  @CacheTTL(60)
   @Get('chapters/:chapterId')
   @UseInterceptors(CacheInterceptor)
   async chapter(
@@ -65,6 +68,7 @@ export class ReaderController {
     return BasicResponseDto.success('Chapter fetched successfully', data);
   }
 
+  @CacheTTL(300)
   @Get('pages/:chapterId')
   @UseInterceptors(CacheInterceptor)
   async read(@Param('chapterId') chapterId: number): Promise<ArrayResponseDto> {
@@ -112,6 +116,7 @@ export class ReaderController {
     return ArrayResponseDto.success('Pages fetched successfully', pages);
   }
 
+  @CacheTTL(300)
   @Get('main-genres')
   @UseInterceptors(CacheInterceptor)
   async genres(): Promise<ArrayResponseDto> {
@@ -119,6 +124,7 @@ export class ReaderController {
     return ArrayResponseDto.success('Genres fetched successfully', data);
   }
 
+  @CacheTTL(300)
   @Get('genres')
   @UseInterceptors(CacheInterceptor)
   async allGenres(): Promise<ArrayResponseDto> {
@@ -126,6 +132,7 @@ export class ReaderController {
     return ArrayResponseDto.success('Genres fetched successfully', data);
   }
 
+  @CacheTTL(300)
   @Get('navigation/:comicId/:chapterId')
   @UseInterceptors(CacheInterceptor)
   async navigation(
@@ -146,5 +153,23 @@ export class ReaderController {
       previous: previousChapter,
       next: nextChapter,
     });
+  }
+
+  @CacheTTL(300)
+  @Get('access/:comicId/:chapterId')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
+  async access(
+    @Param('comicId') comicId: number,
+    @Param('chapterId') chapterId: number,
+    @Req() req: UserRequest,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const access = await this.readerService.getAccess(
+      firebaseUid,
+      comicId,
+      chapterId,
+    );
+    return BasicResponseDto.success('Access fetched successfully', access);
   }
 }

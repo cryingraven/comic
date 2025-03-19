@@ -93,31 +93,6 @@ export class ReaderService {
     });
   }
 
-  async getAccess(firebaseUid: string, comicId: number, chapterId: number) {
-    const user = await this.user.findOne({
-      where: {
-        firebase_uid: firebaseUid,
-      },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    const userId = user.user_id;
-
-    return await this.access.findOne({
-      where: {
-        user_id: userId,
-        comic_id: comicId,
-        chapter_id: chapterId,
-        expired_at: {
-          [Op.gt]: new Date(),
-        },
-      },
-    });
-  }
-
   async findMainGenres() {
     return await this.genre.findAll({
       where: {
@@ -156,6 +131,31 @@ export class ReaderService {
       },
       order: [['chapter_id', 'ASC']],
       limit: 1,
+    });
+  }
+
+  async getAccess(firebaseUid: string, comicId: number, chapterId: number) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const userId = user.user_id;
+
+    return await this.access.findOne({
+      where: {
+        user_id: userId,
+        comic_id: comicId,
+        chapter_id: chapterId,
+        expired_at: {
+          [Op.gt]: new Date(),
+        },
+      },
     });
   }
 }
