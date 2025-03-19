@@ -2,8 +2,7 @@
 
 import useStore from '@/store'
 import { formatNumber } from '@/utils/format'
-import { ArrowDropDownOutlined, Diversity2Rounded } from '@mui/icons-material'
-import { Button } from '@mui/material'
+import { ArrowDropDownOutlined } from '@mui/icons-material'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'

@@ -52,7 +52,12 @@ const ComicPage = () => {
 		mutate([...chapters, ...newData], false)
 	}
 
-	if (isLoading || isLoadingChapters) return <div>Loading...</div>
+	if (isLoading || isLoadingChapters)
+		return (
+			<div className="flex justify-center items-center h-screen">
+				<CircularProgress />
+			</div>
+		)
 
 	return (
 		<div className={'full-width flex flex-col'}>
