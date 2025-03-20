@@ -25,7 +25,7 @@ export class Comic extends Model {
   @Column
   comic_id: number;
 
-  @Column
+  @Column(TEXT('long'))
   title: string;
 
   @Column(TEXT('long'))

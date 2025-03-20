@@ -7,7 +7,9 @@ interface SearchForm {
 const NavbarSearch = () => {
 	const { register, handleSubmit } = useForm<SearchForm>()
 
-	const onSearch = (data: SearchForm) => {}
+	const onSearch = (data: SearchForm) => {
+		console.log(data.query)
+	}
 
 	return (
 		<form onSubmit={handleSubmit(onSearch)}>

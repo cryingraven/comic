@@ -11,6 +11,7 @@ import {
   ForeignKey,
 } from 'sequelize-typescript';
 import { Comic } from './comic.model';
+import { TEXT } from 'sequelize';
 
 @Table({
   tableName: 'chapters',
@@ -28,10 +29,10 @@ export class Chapter extends Model {
   @BelongsTo(() => Comic, 'comic_id')
   comic: Comic;
 
-  @Column
+  @Column(TEXT('long'))
   title: string;
 
-  @Column
+  @Column(TEXT('long'))
   subtitle: string;
 
   @Column

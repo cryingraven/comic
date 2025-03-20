@@ -32,6 +32,7 @@ const ComicReadingPage = () => {
 	const chapterId = query.chapter_id
 	const [showPurchaseModal, setShowPurchaseModal] = useState(true)
 	const [pages, setPages] = useState<Page[]>([])
+	const [currentPageIndex, setCurrentPageIndex] = useState(0)
 
 	const { data: comic, isLoading: comicLoading } = useSWR<Comic>(
 		`/r/comics/${comicId}`
@@ -97,6 +98,18 @@ const ComicReadingPage = () => {
 
 	const toggleAppBar = () => {
 		setShowAppBar(!showAppBar)
+	}
+
+	const handleNextPage = () => {
+		if (currentPageIndex < pages.length - 1) {
+			setCurrentPageIndex(currentPageIndex + 1)
+		}
+	}
+
+	const handlePreviousPage = () => {
+		if (currentPageIndex > 0) {
+			setCurrentPageIndex(currentPageIndex - 1)
+		}
 	}
 
 	return (
@@ -177,7 +190,22 @@ const ComicReadingPage = () => {
 			<div className="flex flex-col items-center container mx-auto max-w-[1024px]">
 				{!comicLoading &&
 					!chapterLoading &&
-					pages &&
+					comic?.comic_type === 'classic' &&
+					pages.length > 0 && (
+						<Card className="w-full">
+							<Image
+								src={getImageUrl(pages[currentPageIndex].image)}
+								alt={`Comic Page ${currentPageIndex + 1}`}
+								layout="responsive"
+								width={800}
+								height={800}
+								className="w-full"
+							/>
+						</Card>
+					)}
+				{!comicLoading &&
+					!chapterLoading &&
+					comic?.comic_type !== 'classic' &&
 					pages.map((page, index) => (
 						<Card key={index} className="w-full">
 							<Image
@@ -191,6 +219,26 @@ const ComicReadingPage = () => {
 						</Card>
 					))}
 			</div>
+			{comic?.comic_type === 'classic' && (
+				<div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4">
+					{currentPageIndex > 0 && (
+						<Button
+							className="bg-gray-800 text-white p-2 rounded-full shadow-lg"
+							onClick={handlePreviousPage}
+						>
+							<ChevronLeft />
+						</Button>
+					)}
+					{currentPageIndex < pages.length - 1 && (
+						<Button
+							className="bg-gray-800 text-white p-2 rounded-full shadow-lg"
+							onClick={handleNextPage}
+						>
+							<ChevronRight />
+						</Button>
+					)}
+				</div>
+			)}
 			<Button
 				className="fixed bottom-4 right-4 bg-gray-800 text-white p-2 rounded-full shadow-lg"
 				onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

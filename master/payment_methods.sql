@@ -1,0 +1,4 @@
+INSERT INTO `payment_methods` (`id`, `method_name`, `method_type`, `method_description`, `method_image`, `created_at`, `updated_at`) VALUES (1, 'BCA', 'va', 'Bank BCA', 'BCA.webp', '2025-03-19 11:53:46', '2025-03-19 11:53:49');
+INSERT INTO `payment_methods` (`id`, `method_name`, `method_type`, `method_description`, `method_image`, `created_at`, `updated_at`) VALUES (2, 'BRI', 'va', 'Bank BRI', 'BRI.webp', '2025-03-19 11:54:22', '2025-03-19 11:54:24');
+INSERT INTO `payment_methods` (`id`, `method_name`, `method_type`, `method_description`, `method_image`, `created_at`, `updated_at`) VALUES (3, 'GoPay', 'ewallet', 'GOPAY', 'GOPAY.webp', '2025-03-19 11:55:17', '2025-03-19 11:55:21');
+INSERT INTO `payment_methods` (`id`, `method_name`, `method_type`, `method_description`, `method_image`, `created_at`, `updated_at`) VALUES (4, 'ShopeePay', 'ewallet', 'Shopee Pay', 'SHOPEEPAY.webp', '2025-03-19 11:55:50', '2025-03-19 11:55:54');

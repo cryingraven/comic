@@ -7,7 +7,6 @@
 		"comic-backend"
 	],
 	"dependencies": {
-		"@nestjs/config": "^4.0.1",
 		"comic-backend": "^0.0.1"
 	}
 }
