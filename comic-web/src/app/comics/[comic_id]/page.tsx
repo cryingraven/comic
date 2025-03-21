@@ -13,7 +13,7 @@ import { formatNumber } from '@/utils/format'
 import Head from 'next/head'
 import { Chapter } from '@/models/chapter'
 import { useState } from 'react'
-import {ShareSocial} from 'react-share-social' 
+import { ShareSocial } from 'react-share-social'
 
 const ComicPage = () => {
 	const params = useParams()
@@ -134,20 +134,10 @@ const ComicPage = () => {
 							color="primary"
 							className="rounded-full"
 							startIcon={<Share />}
-							onClick={() => {
-								setShowShare(!showShare)
-							}}
+							onClick={() => setShowShare(!showShare)}
 						>
 							Share
 						</Button>
-						{showShare && (
-							<div className="md:absolute right-0 mt-2 md:bg-white border sm:w-full md:w-48 min-w-48 rounded-md md:shadow-lg z-50">
-								<ShareSocial
-									url="url_to_share.com"
-									socialTypes={['facebook', 'twitter', 'reddit', 'linkedin']}
-								/>
-							</div>
-						)}
 					</div>
 				</div>
 				<div className="mt-4 hidden md:flex flex-col items-start space-y-2 text-white">
@@ -167,14 +157,32 @@ const ComicPage = () => {
 						className="rounded-full"
 						startIcon={<Share />}
 						onClick={() => {
-							navigator.clipboard.writeText(window.location.href)
-							alert('Link copied to clipboard!')
+							setShowShare(!showShare)
 						}}
 					>
 						Share
 					</Button>
 				</div>
 			</div>
+			{showShare && (
+				<div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+					<div className="bg-white p-2 rounded-md shadow-lg w-full max-w-md">
+						<ShareSocial
+							url="24comic.com"
+							socialTypes={['facebook', 'twitter', 'reddit', 'linkedin']}
+						/>
+						<Button
+							variant="outlined"
+							color="info"
+							className="mt-4 w-full"
+							size="small"
+							onClick={() => setShowShare(false)}
+						>
+							Close
+						</Button>
+					</div>
+				</div>
+			)}
 			<div className="container mx-auto relative z-40 -top-72 md:-top-80 p-3 md:p-10 mb-5 bg-white rounded-lg">
 				<h2 className="text-xl md:text-2xl font-bold mb-4">Description</h2>
 				<p className="text-md md:text-lg">{data?.description}</p>
