@@ -189,6 +189,82 @@ export class PaymentService {
     });
   }
 
+  async buyChapterFiat(
+    firebaseUid: string,
+    comicId: number,
+    chapterId: number,
+    paymentMethodId: number,
+  ) {
+    try {
+      const result = await this.sequelize.transaction(async (t) => {
+        const user = await this.userModel.findOne({
+          where: {
+            firebase_uid: firebaseUid,
+          },
+        });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const chapter = await this.chapterModel.findOne({
+          where: {
+            comic_id: comicId,
+            chapter_id: chapterId,
+          },
+        });
+
+        if (!chapter) {
+          throw new Error('Chapter not found');
+        }
+        const paymentMethod = await this.paymentMethodModel.findOne({
+          where: {
+            method_id: paymentMethodId,
+          },
+        });
+
+        if (!paymentMethod) {
+          throw new Error('Payment method not found');
+        }
+
+        const payment = await this.paymentModel.create(
+          {
+            user_id: user.user_id,
+            payment_method_id: paymentMethod.method_id,
+            type: 'purchase',
+            amount: chapter.fiat_price,
+            status: 'pending',
+            extra: JSON.stringify({
+              comic_id: comicId,
+              chapter_id: chapterId,
+            }),
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        const midtransResponse =
+          await this.midtransService.createPaymentRequest(
+            paymentMethod.method_type,
+            paymentMethod.method_name,
+            chapter.fiat_price,
+            payment.payment_id.toString(),
+          );
+        payment.payment_response = JSON.stringify(midtransResponse);
+        await payment.save({
+          transaction: t,
+        });
+
+        return midtransResponse;
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
   async handleMidtransNotification(notification: any) {
     const orderId = notification.order_id;
     const statusCode = notification.status_code;
@@ -225,26 +301,57 @@ export class PaymentService {
         });
 
         if (statusCode === '200') {
-          const user = await this.userModel.findOne({
-            where: {
-              user_id: payment.user_id,
-            },
-          });
+          if (payment.type === 'top-up') {
+            const user = await this.userModel.findOne({
+              where: {
+                user_id: payment.user_id,
+              },
+            });
 
-          if (!user) {
-            throw new Error('User not found');
+            if (!user) {
+              throw new Error('User not found');
+            }
+
+            user.balance += payment.amount_to_add;
+
+            await user.save({
+              transaction: t,
+            });
+
+            return user;
           }
-          
-          user.balance += payment.amount_to_add;
 
-          await user.save({
-            transaction: t,
-          });
+          if (payment.type === 'purchase') {
+            const extra = JSON.parse(payment.extra);
 
-          return user;
+            const chapter = await this.chapterModel.findOne({
+              where: {
+                chapter_id: extra.chapter_id,
+                comic_id: extra.comic_id,
+              },
+            });
+
+            const userId = payment.user_id;
+
+            const access = await this.accessModel.create(
+              {
+                user_id: userId,
+                chapter_id: chapter.chapter_id,
+                comic_id: chapter.comic_id,
+                expired_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+              },
+              {
+                transaction: t,
+              },
+            );
+
+            return access;
+          }
+
+          return payment;
         }
       });
-      
+
       return result;
     } catch (error) {
       throw new Error(error.message);

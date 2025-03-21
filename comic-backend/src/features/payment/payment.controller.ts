@@ -13,6 +13,7 @@ import { BasicResponseDto } from 'src/dto/basicresponse.dto';
 import { FirebaseGuard } from 'src/modules/firebase/firebase.guard';
 import { UserRequest } from 'src/types/user.type';
 import { TopupDTO } from 'src/dto/topup.dto';
+import { BuyWithFiatDto } from 'src/dto/payment.dto';
 
 @Controller('payment')
 export class PaymentController {
@@ -80,5 +81,24 @@ export class PaymentController {
     console.log('Headers:', req.headers);
     await this.paymentService.handleMidtransNotification(body);
     return BasicResponseDto.success('Notification handled successfully', null);
+  }
+
+  @Post('buy-fiat/:comicId/:chapterId')
+  @UseGuards(FirebaseGuard)
+  async buyChapterUsingFiat(
+    @Param('comicId') comicId: number,
+    @Param('chapterId') chapterId: number,
+    @Req() req: UserRequest,
+    @Body() body: BuyWithFiatDto,
+  ) {
+    const userId = req.user.uid;
+    const result = await this.paymentService.buyChapterFiat(
+      userId,
+      comicId,
+      chapterId,
+      body.method_id,
+    );
+    
+    return BasicResponseDto.success('Chapter purchased successfully', result);
   }
 }

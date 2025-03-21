@@ -5,6 +5,7 @@ export interface Chapter {
 	subtitle: string
 	image: string
 	price: number
+	fiat_price: number
 	views: number
 	likes: number
 	comments: number

@@ -22,8 +22,10 @@ const TopUpForm = ({ methods, packages }: TopUpFormProps) => {
 	const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(
 		null
 	)
+	const [loading, setLoading] = useState<boolean>(false)
 
 	const processTopUp = async () => {
+		setLoading(true)
 		if (!selectedPackage || !selectedMethod) {
 			alert('Please select a package and a payment method')
 			return
@@ -44,6 +46,7 @@ const TopUpForm = ({ methods, packages }: TopUpFormProps) => {
 		} catch (e) {
 			console.log(e)
 		}
+		setLoading(false)
 	}
 	return (
 		<div className="flex flex-col">
@@ -94,7 +97,7 @@ const TopUpForm = ({ methods, packages }: TopUpFormProps) => {
 					variant="contained"
 					color="warning"
 					className="p-4 rounded-full w-full md:max-w-96"
-					disabled={!selectedPackage || !selectedMethod}
+					disabled={!selectedPackage || !selectedMethod || loading}
 					onClick={processTopUp}
 				>
 					Top Up

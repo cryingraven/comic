@@ -6,6 +6,7 @@ import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
 import { Genre } from 'src/models/genre.model';
 import { Page } from 'src/models/page.model';
+import { ReadHistory } from 'src/models/readhistory.model';
 import { User } from 'src/models/user.model';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class ReaderService {
     @InjectModel(Page) private page: typeof Page,
     @InjectModel(Access) private access: typeof Access,
     @InjectModel(Genre) private genre: typeof Genre,
+    @InjectModel(ReadHistory) private readHistory: typeof ReadHistory,
   ) {}
 
   getAll() {
@@ -157,5 +159,67 @@ export class ReaderService {
         },
       },
     });
+  }
+
+  async addReadHistory(
+    firebaseUid: string,
+    comicId: number,
+    chapterId: number,
+  ) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const comic = await this.comic.findOne({
+      where: {
+        comic_id: comicId,
+      },
+    });
+
+    if (!comic) {
+      return null;
+    }
+
+    const chapter = await this.chapter.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!chapter) {
+      return null;
+    }
+
+    comic.views += 1;
+    await comic.save();
+
+    chapter.views += 1;
+    await chapter.save();
+
+    const userId = user.user_id;
+    const readHistory = await this.readHistory.findOne({
+      where: {
+        user_id: userId,
+      },
+      limit: 1,
+      order: [['created_at', 'DESC']],
+    });
+
+    if (readHistory) {
+      return readHistory;
+    } else {
+      return await this.readHistory.create({
+        user_id: userId,
+        comic_id: comicId,
+        chapter_id: chapterId,
+        created_at: new Date(),
+      });
+    }
   }
 }

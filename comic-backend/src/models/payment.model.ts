@@ -52,6 +52,9 @@ export class Payment extends Model {
   @Column(TEXT('long'))
   payment_response: string;
 
+  @Column(TEXT('long'))
+  extra: string;
+
   @CreatedAt
   created_at: Date;
 

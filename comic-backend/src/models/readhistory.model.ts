@@ -36,6 +36,10 @@ export class ReadHistory extends Model {
   @BelongsTo(() => Comic, 'comic_id')
   comic: Comic;
 
+  @ForeignKey(() => Chapter)
+  @Column
+  chapter_id: number;
+
   @BelongsTo(() => Chapter, 'chapter_id')
   chapter: Chapter;
 

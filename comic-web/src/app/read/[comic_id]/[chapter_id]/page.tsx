@@ -89,8 +89,22 @@ const ComicReadingPage = () => {
 		}
 	}
 
+	const addReadHistory = async () => {
+		if (chapter && store.user && store.token) {
+			try {
+				await AppService.instance(store.token || '').post(`/r/read-history`, {
+					comic_id: comicId,
+					chapter_id: chapterId,
+				})
+			} catch (err) {
+				console.log(err)
+			}
+		}
+	}
+
 	useEffect(() => {
 		fetchPages()
+		addReadHistory()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [chapter])
 

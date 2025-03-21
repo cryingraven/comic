@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -13,6 +15,7 @@ import { BasicResponseDto } from 'src/dto/basicresponse.dto';
 import { FirebaseGuard } from 'src/modules/firebase/firebase.guard';
 import { UserRequest } from 'src/types/user.type';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { ReadHistoryDto } from 'src/dto/readhistory.dto';
 
 @Controller('r')
 export class ReaderController {
@@ -171,5 +174,20 @@ export class ReaderController {
       chapterId,
     );
     return BasicResponseDto.success('Access fetched successfully', access);
+  }
+
+  @Post('read-history')
+  @UseGuards(FirebaseGuard)
+  async readHistory(
+    @Body() body: ReadHistoryDto,
+    @Req() req: UserRequest,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.addReadHistory(
+      firebaseUid,
+      body.comic_id,
+      body.chapter_id,
+    );
+    return BasicResponseDto.success('Read history added successfully', data);
   }
 }

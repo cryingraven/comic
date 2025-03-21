@@ -1,7 +1,11 @@
+'use client'
+
 import React from 'react'
 import { Modal, Button, Typography, Paper } from '@mui/material'
 import { Chapter } from '@/models/chapter'
 import { Comic } from '@/models/comic'
+import useSWR from 'swr'
+import { useRouter } from 'next/navigation'
 
 interface PurchaseModalProps {
 	chapter: Chapter
@@ -18,11 +22,15 @@ const PurchaseModal = ({
 	onClose,
 	onPurchase,
 }: PurchaseModalProps) => {
+  const router = useRouter()
+	const { data } = useSWR('/users/me')
 	const purchase = async () => {
 		if (onPurchase) {
 			onPurchase(comic.comic_id, chapter.chapter_id)
 		}
 	}
+
+	console.log(data)
 
 	return (
 		<Modal
@@ -43,6 +51,9 @@ const PurchaseModal = ({
 						color="warning"
 						className="p-2 rounded-full"
 						onClick={purchase}
+						disabled={
+							!data || !chapter || (data && data?.balance < chapter?.price)
+						}
 					>
 						Pay Using {chapter?.price} Coins
 					</Button>
@@ -50,7 +61,7 @@ const PurchaseModal = ({
 						variant="contained"
 						color="primary"
 						className="p-2 rounded-full"
-						onClick={purchase}
+						onClick={()=>router.push(`/payment/chapter/${chapter.chapter_id}`)}
 					>
 						Pay IDR {(chapter?.price * 2500).toLocaleString('id-ID')}
 					</Button>

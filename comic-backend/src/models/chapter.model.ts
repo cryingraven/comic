@@ -58,6 +58,10 @@ export class Chapter extends Model {
   @Column
   price: number;
 
+  @Default(0)
+  @Column
+  fiat_price: number;
+
   @Column
   published_at: Date;
 
