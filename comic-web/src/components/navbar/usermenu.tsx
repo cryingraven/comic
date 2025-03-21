@@ -1,9 +1,11 @@
 'use client'
 
+import { User } from '@/models/user'
 import useStore from '@/store'
 import { formatNumber } from '@/utils/format'
+import { getImageUrl } from '@/utils/imageurl'
 import { ArrowDropDownOutlined } from '@mui/icons-material'
-import Image from 'next/image'
+import { Avatar } from '@mui/material'
 import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -11,7 +13,7 @@ import useSWR from 'swr'
 const UserMenu = () => {
 	const store = useStore()
 	const [isOpen, setIsOpen] = useState(false)
-	const { data, isLoading } = useSWR('/users/me')
+	const { data, isLoading } = useSWR<User>('/users/me')
 	const toggleMenu = () => {
 		setIsOpen(!isOpen)
 	}
@@ -24,15 +26,18 @@ const UserMenu = () => {
 						onClick={toggleMenu}
 						className="flex items-center focus:outline-none w-full"
 					>
-						<Image
-							src={store.user?.photoURL || '/default-avatar.png'}
-							alt="User Avatar"
-							className="w-10 h-10 rounded-full"
-							width={40}
-							height={40}
+						<Avatar
+							alt="Remy Sharp"
+							src={
+								data && data.image
+									? getImageUrl(data.image)
+									: store.user?.photoURL || '/default-avatar.png'
+							}
+							sx={{ width: 48, height: 48 }}
+							className="border border-gray-300"
 						/>
 						<div className="ml-2 text-gray-700 flex flex-col sm:flex-grow sm:w-full text-start">
-							<p> {store.user?.displayName || 'User'}</p>
+							<p> {data?.fullname || store.user?.displayName || 'User'}</p>
 							<p className="text-sm text-orange-500">
 								{formatNumber(data?.balance || 0)} Coin
 							</p>

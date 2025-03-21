@@ -40,6 +40,15 @@ export default class AppService {
 		return response.data.data
 	}
 
+  async postMultipart(url: string, data: FormData) {
+		const response = await AppService._axios.post(url, data, {
+			headers: {
+				'Content-Type': 'multipart/form-data',
+			},
+		})
+		return response.data.data
+	}
+
 	async saveProfile(data: SaveProfile) {
 		const response = await AppService._axios.post('/users', data)
 		return response.data.data

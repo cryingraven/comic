@@ -9,6 +9,7 @@ import { ReaderModule } from 'src/features/reader/reader.module';
 import { PaymentModule } from 'src/features/payment/payment.module';
 import { StorageService } from 'src/services/storage.service';
 import { CacheModule } from '@nestjs/cache-manager';
+import { FileModule } from 'src/features/file/file.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     UserModule,
     ReaderModule,
     PaymentModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService, StorageService],

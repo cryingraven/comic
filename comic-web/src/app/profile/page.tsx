@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import useStore from '@/store'
 import useSWR from 'swr'
 import { User } from '@/models/user'
+import AppService from '@/services/app'
 
 interface EditProfileForm {
 	phone: string
@@ -18,6 +19,7 @@ const EditProfilePage = () => {
 	const router = useRouter()
 	const store = useStore()
 	const { data } = useSWR<User>('/users/me')
+	const [loading, setLoading] = useState(false)
 	const { handleSubmit, register, setValue } = useForm<EditProfileForm>({
 		defaultValues: {
 			phone: data?.phone_number || '',
@@ -27,10 +29,34 @@ const EditProfilePage = () => {
 	const [newImage, setNewImage] = useState<File | null>(null)
 
 	const onSubmit = async (data: EditProfileForm) => {
-		const sanitizedFullName = data.fullName.replace(/[^a-zA-Z\s]/g, '').trim()
-		setValue('fullName', sanitizedFullName)
-		console.log(data)
-		console.log(newImage)
+		setLoading(true)
+		try {
+			const sanitizedFullName = data.fullName.replace(/[^a-zA-Z\s]/g, '').trim()
+			setValue('fullName', sanitizedFullName)
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const newProfile: any = {
+				fullname: sanitizedFullName,
+				phone: data.phone,
+			}
+			if (newImage) {
+				const formData = new FormData()
+				formData.append('file', newImage)
+
+				const filename = await AppService.instance(
+					store.token || ''
+				).postMultipart('/file/upload', formData)
+
+				newProfile.image = filename
+			}
+
+			await AppService.instance(store.token || '').post('/users', newProfile)
+			router.push('/profile')
+		} catch (e) {
+			console.log(e)
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	return (
@@ -97,6 +123,7 @@ const EditProfilePage = () => {
 						color="warning"
 						className="rounded-full p-4"
 						fullWidth
+						disabled={loading}
 					>
 						Save Changes
 					</Button>
