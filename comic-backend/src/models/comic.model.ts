@@ -83,6 +83,9 @@ export class Comic extends Model {
   @Column
   is_editor_choice: boolean;
 
+  @Column
+  published_at: Date;
+
   @CreatedAt
   created_at: Date;
 

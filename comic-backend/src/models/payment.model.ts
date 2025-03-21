@@ -7,9 +7,11 @@ import {
   CreatedAt,
   ForeignKey,
   BelongsTo,
+  UpdatedAt,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { PaymentMethod } from './paymentmethod.model';
+import { TEXT } from 'sequelize';
 
 @Table({
   tableName: 'payments',
@@ -19,7 +21,7 @@ export class Payment extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column
-  id: number;
+  payment_id: number;
 
   @ForeignKey(() => User)
   @Column
@@ -45,8 +47,14 @@ export class Payment extends Model {
   status: string;
 
   @Column
-  amoun_to_add: number | null;
+  amount_to_add: number | null;
+
+  @Column(TEXT('long'))
+  payment_response: string;
 
   @CreatedAt
   created_at: Date;
+
+  @UpdatedAt
+  updated_at: Date;
 }

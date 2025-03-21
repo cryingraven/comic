@@ -12,6 +12,8 @@ import useSWR from 'swr'
 import { formatNumber } from '@/utils/format'
 import Head from 'next/head'
 import { Chapter } from '@/models/chapter'
+import { useState } from 'react'
+import {ShareSocial} from 'react-share-social' 
 
 const ComicPage = () => {
 	const params = useParams()
@@ -19,6 +21,7 @@ const ComicPage = () => {
 	const sort = query.get('sort') || 'desc'
 	const comicId = params.comic_id
 	const router = useRouter()
+	const [showShare, setShowShare] = useState(false)
 	const { data, isLoading } = useSWR<Comic>(`/r/comics/${comicId}`)
 
 	const getKey = (pageIndex: number) => {
@@ -132,12 +135,19 @@ const ComicPage = () => {
 							className="rounded-full"
 							startIcon={<Share />}
 							onClick={() => {
-								navigator.clipboard.writeText(window.location.href)
-								alert('Link copied to clipboard!')
+								setShowShare(!showShare)
 							}}
 						>
 							Share
 						</Button>
+						{showShare && (
+							<div className="md:absolute right-0 mt-2 md:bg-white border sm:w-full md:w-48 min-w-48 rounded-md md:shadow-lg z-50">
+								<ShareSocial
+									url="url_to_share.com"
+									socialTypes={['facebook', 'twitter', 'reddit', 'linkedin']}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 				<div className="mt-4 hidden md:flex flex-col items-start space-y-2 text-white">

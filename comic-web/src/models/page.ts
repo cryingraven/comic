@@ -1,5 +1,5 @@
 export interface Page {
-	id: number
+	pacge_id: number
 	comic_id: number
 	chapter_id: number
 	page_number: number

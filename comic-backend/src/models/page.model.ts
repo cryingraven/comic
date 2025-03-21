@@ -19,7 +19,7 @@ export class Page extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column
-  id: number;
+  page_id: number;
 
   @ForeignKey(() => Comic)
   @Column

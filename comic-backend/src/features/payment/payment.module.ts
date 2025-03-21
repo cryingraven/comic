@@ -9,6 +9,9 @@ import { PaymentMethod } from 'src/models/paymentmethod.model';
 import { Comic } from 'src/models/comic.model';
 import { Chapter } from 'src/models/chapter.model';
 import { FirebaseModule } from 'src/modules/firebase/firebase.module';
+import { HttpModule } from '@nestjs/axios';
+import { MidtransService } from 'src/services/midtrans.service';
+import { Package } from 'src/models/package.model';
 @Module({
   imports: [
     SequelizeModule.forFeature([
@@ -18,12 +21,14 @@ import { FirebaseModule } from 'src/modules/firebase/firebase.module';
       Chapter,
       Payment,
       PaymentMethod,
+      Package,
     ]),
     FirebaseModule,
+    HttpModule,
   ],
   controllers: [PaymentController],
-  providers: [PaymentService],
-  exports: [PaymentService],
+  providers: [PaymentService, MidtransService],
+  exports: [PaymentService, MidtransService],
 })
 export class PaymentModule {
   constructor() {}

@@ -15,7 +15,7 @@ export class PaymentMethod extends Model {
   @PrimaryKey
   @AutoIncrement
   @Column
-  id: number;
+  method_id: number;
 
   @Column
   method_name: string;

@@ -4,13 +4,14 @@ import { Typography } from '@mui/material'
 
 const TopUpPage = async () => {
 	const methods = await DefaultBackendService.instance().getAllPaymentMethods()
+	const packages = await DefaultBackendService.instance().getAllPackages()
 
 	return (
 		<div className="container mx-auto p-4 md:p-10">
 			<Typography variant="h4" gutterBottom className="font-bold">
 				Top Up
 			</Typography>
-			<TopUpForm methods={methods} />
+			<TopUpForm packages={packages} methods={methods} />
 		</div>
 	)
 }

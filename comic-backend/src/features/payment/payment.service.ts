@@ -4,9 +4,11 @@ import { Sequelize } from 'sequelize-typescript';
 import { Access } from 'src/models/access.model';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
+import { Package } from 'src/models/package.model';
 import { Payment } from 'src/models/payment.model';
 import { PaymentMethod } from 'src/models/paymentmethod.model';
 import { User } from 'src/models/user.model';
+import { MidtransService } from 'src/services/midtrans.service';
 
 @Injectable()
 export class PaymentService {
@@ -23,6 +25,9 @@ export class PaymentService {
     private comicModel: typeof Comic,
     @InjectModel(Chapter)
     private chapterModel: typeof Chapter,
+    @InjectModel(Package)
+    private packageModel: typeof Package,
+    private readonly midtransService: MidtransService,
     private readonly sequelize: Sequelize,
   ) {}
 
@@ -94,6 +99,152 @@ export class PaymentService {
         return newAccess;
       });
 
+      return result;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async topUpPackage(
+    firebaseUid: string,
+    packageId: number,
+    paymentMethodId: number,
+  ) {
+    try {
+      const result = await this.sequelize.transaction(async (t) => {
+        const user = await this.userModel.findOne({
+          where: {
+            firebase_uid: firebaseUid,
+          },
+        });
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const topupPackage = await this.packageModel.findOne({
+          where: {
+            package_id: packageId,
+          },
+        });
+
+        if (!topupPackage) {
+          throw new Error('Package not found');
+        }
+        const paymentMethod = await this.paymentMethodModel.findOne({
+          where: {
+            method_id: paymentMethodId,
+          },
+        });
+
+        if (!paymentMethod) {
+          throw new Error('Payment method not found');
+        }
+
+        const payment = await this.paymentModel.create(
+          {
+            user_id: user.user_id,
+            payment_method_id: paymentMethod.method_id,
+            type: 'top-up',
+            amount: topupPackage.price,
+            amount_to_add: topupPackage.coin,
+            status: 'pending',
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        const midtransResponse =
+          await this.midtransService.createPaymentRequest(
+            paymentMethod.method_type,
+            paymentMethod.method_name,
+            topupPackage.price,
+            payment.payment_id.toString(),
+          );
+
+        payment.payment_response = JSON.stringify(midtransResponse);
+
+        await payment.save({
+          transaction: t,
+        });
+
+        return midtransResponse;
+      });
+      return result;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async getAllPackages() {
+    return this.packageModel.findAll();
+  }
+
+  async getPaymentById(paymentId: number) {
+    return this.paymentModel.findOne({
+      include: [User, PaymentMethod],
+      where: {
+        payment_id: paymentId,
+      },
+    });
+  }
+
+  async handleMidtransNotification(notification: any) {
+    const orderId = notification.order_id;
+    const statusCode = notification.status_code;
+    const grossAmount = notification.gross_amount;
+    const signatureKey = notification.signature_key;
+
+    const isValidSignature = await this.midtransService.validateSignature(
+      signatureKey,
+      orderId,
+      statusCode,
+      grossAmount,
+    );
+
+    if (!isValidSignature) {
+      throw new Error('Invalid signature');
+    }
+
+    try {
+      const result = await this.sequelize.transaction(async (t) => {
+        const payment = await this.paymentModel.findOne({
+          where: {
+            payment_id: parseInt(orderId),
+          },
+        });
+
+        if (!payment) {
+          throw new Error('Payment not found');
+        }
+
+        payment.status = statusCode === '200' ? 'success' : 'failed';
+
+        await payment.save({
+          transaction: t,
+        });
+
+        if (statusCode === '200') {
+          const user = await this.userModel.findOne({
+            where: {
+              user_id: payment.user_id,
+            },
+          });
+
+          if (!user) {
+            throw new Error('User not found');
+          }
+          
+          user.balance += payment.amount_to_add;
+
+          await user.save({
+            transaction: t,
+          });
+
+          return user;
+        }
+      });
+      
       return result;
     } catch (error) {
       throw new Error(error.message);
