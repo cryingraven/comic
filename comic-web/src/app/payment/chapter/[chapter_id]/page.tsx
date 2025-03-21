@@ -60,6 +60,10 @@ export default function CheckoutPage() {
 	if (error) return <div>Failed to load</div>
 	if (!data) return <div>Loading...</div>
 
+	const filterMethods = methods.filter((method) => {
+		return data?.fiat_price >= 10000 || method.method_type === 'ewallet'
+	})
+
 	return (
 		<div className="min-h-screen bg-gray-100 flex items-center justify-center">
 			<div className="bg-white p-8 rounded-lg shadow-lg w-full gap-2 max-w-md">
@@ -89,7 +93,7 @@ export default function CheckoutPage() {
 					<p className="text-gray-800">Select Payment Method</p>
 				</div>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-					{methods.map((method) => (
+					{filterMethods.map((method) => (
 						<div
 							key={method.method_id}
 							className={`flex items-center cursor-pointer p-4 bg-white rounded-lg gap-2 hover:bg-gray-100 transition duration-300 ${selectedMethod?.method_id === method.method_id ? 'border-2 border-blue-500' : ''}`}

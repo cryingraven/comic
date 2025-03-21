@@ -22,7 +22,7 @@ const PurchaseModal = ({
 	onClose,
 	onPurchase,
 }: PurchaseModalProps) => {
-  const router = useRouter()
+	const router = useRouter()
 	const { data } = useSWR('/users/me')
 	const purchase = async () => {
 		if (onPurchase) {
@@ -61,9 +61,11 @@ const PurchaseModal = ({
 						variant="contained"
 						color="primary"
 						className="p-2 rounded-full"
-						onClick={()=>router.push(`/payment/chapter/${chapter.chapter_id}`)}
+						onClick={() =>
+							router.push(`/payment/chapter/${chapter.chapter_id}`)
+						}
 					>
-						Pay IDR {(chapter?.price * 2500).toLocaleString('id-ID')}
+						Pay IDR {(chapter?.fiat_price).toLocaleString('id-ID')}
 					</Button>
 					<Button
 						variant="outlined"
