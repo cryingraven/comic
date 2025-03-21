@@ -32,7 +32,11 @@ const ChapterItem = ({ chapter }: ChapterItemProps) => {
 							)}
 						>
 							{chapter.price
-								? `${chapter.price} Coin - ${chapter.fiat_price.toLocaleString('id-ID')} IDR`
+								? chapter.accesses && chapter.accesses.length > 0
+									? 'Purchased'
+									: `${chapter.price} Coin - ${chapter.fiat_price.toLocaleString(
+											'id-ID'
+										)} IDR`
 								: 'Free'}
 						</p>
 						<h3 className="text-md md:text-lg font-semibold">

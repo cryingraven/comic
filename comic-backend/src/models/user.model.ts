@@ -37,6 +37,10 @@ export class User extends Model {
   @Column
   balance: number;
 
+  @Default(0)
+  @Column
+  wallet_balance: number;
+
   @Column
   image: string | null;
 

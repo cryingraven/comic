@@ -79,6 +79,45 @@ export class ReaderService {
     });
   }
 
+  async findChaptersWithAccess(
+    firebaseUid: string,
+    comicId: number,
+    skip: number = 0,
+    limit: number = 10,
+    sor: string | null = 'created_at::desc',
+  ) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const parsedSort = sor.split('::');
+
+    return this.chapter.findAll({
+      include: [
+        {
+          model: Access,
+          where: {
+            user_id: user.user_id,
+            comic_id: comicId,
+          },
+          required: false,
+        },
+      ],
+      where: {
+        comic_id: comicId,
+      },
+      offset: parseInt(skip.toString()),
+      limit: parseInt(limit.toString()),
+      order: [[parsedSort[0], parsedSort[1]]],
+    });
+  }
+
   getChapterById(chapterId: number) {
     return this.chapter.findOne({
       where: {

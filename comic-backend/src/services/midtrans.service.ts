@@ -6,7 +6,7 @@ import {
 } from './interface/paymentgateway';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import crypto from 'crypto';
+import { createHmac } from 'crypto';
 
 @Injectable()
 export class MidtransService implements PaymentGatewayService {
@@ -74,9 +74,11 @@ export class MidtransService implements PaymentGatewayService {
     statusCode: string,
     grossAmount: string,
   ) {
-    const midtransServerKey = this.configService.get<string>('MIDTRANS_SERVER_KEY');
+    const midtransServerKey = this.configService.get<string>(
+      'MIDTRANS_SERVER_KEY',
+    );
     const data = orderId + statusCode + grossAmount + midtransServerKey;
-    const expectedSignatureKey = crypto.createHmac('sha512', midtransServerKey)
+    const expectedSignatureKey = createHmac('sha512', midtransServerKey)
       .update(data)
       .digest('hex');
     return signatureKey === expectedSignatureKey;

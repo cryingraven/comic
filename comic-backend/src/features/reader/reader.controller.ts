@@ -61,6 +61,27 @@ export class ReaderController {
     return ArrayResponseDto.success('Chapters fetched successfully', data);
   }
 
+  @Get('comics/:id/chapters-with-access')
+  @UseInterceptors(CacheInterceptor)
+  @UseGuards(FirebaseGuard)
+  async chaptersLogin(
+    @Param('id') id: number,
+    @Query('skip') skip: number,
+    @Query('limit') limit: number,
+    @Query('order_by') sort: string,
+    @Req() req: UserRequest,
+  ): Promise<ArrayResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.findChaptersWithAccess(
+      firebaseUid,
+      id,
+      skip,
+      limit,
+      sort,
+    );
+    return ArrayResponseDto.success('Chapters fetched successfully', data);
+  }
+
   @CacheTTL(60)
   @Get('chapters/:chapterId')
   @UseInterceptors(CacheInterceptor)

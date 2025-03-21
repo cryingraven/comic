@@ -14,8 +14,10 @@ import Head from 'next/head'
 import { Chapter } from '@/models/chapter'
 import { useState } from 'react'
 import { ShareSocial } from 'react-share-social'
+import useStore from '@/store'
 
 const ComicPage = () => {
+	const store = useStore()
 	const params = useParams()
 	const query = useSearchParams()
 	const sort = query.get('sort') || 'desc'
@@ -28,12 +30,12 @@ const ComicPage = () => {
 		const skip = pageIndex * 10
 		const limit = 10
 
-		return `/r/comics/${comicId}/chapters?skip=${skip}&limit=${limit}&order_by=created_at::${sort}`
+		return `/r/comics/${comicId}/${store.token ? 'chapters-with-access' : 'chapters'}?skip=${skip}&limit=${limit}&order_by=created_at::${sort}`
 	}
 
 	const getChapters = async (key: string) => {
 		try {
-			const newChapters = await AppService.instance().get(key)
+			const newChapters = await AppService.instance(store.token || '').get(key)
 			return newChapters
 		} catch (e) {
 			console.log(e)

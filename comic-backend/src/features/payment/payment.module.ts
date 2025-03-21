@@ -12,6 +12,7 @@ import { FirebaseModule } from 'src/modules/firebase/firebase.module';
 import { HttpModule } from '@nestjs/axios';
 import { MidtransService } from 'src/services/midtrans.service';
 import { Package } from 'src/models/package.model';
+import { InternalTransaction } from 'src/models/transaction.model';
 @Module({
   imports: [
     SequelizeModule.forFeature([
@@ -22,6 +23,7 @@ import { Package } from 'src/models/package.model';
       Payment,
       PaymentMethod,
       Package,
+      InternalTransaction,
     ]),
     FirebaseModule,
     HttpModule,

@@ -1,3 +1,5 @@
+import { Access } from './access'
+
 export interface Chapter {
 	chapter_id: number
 	comic_id: number
@@ -10,6 +12,7 @@ export interface Chapter {
 	likes: number
 	comments: number
 	shares: number
+	accesses?: Access[]
 	created_at: Date
 	updated_at: Date
 }
