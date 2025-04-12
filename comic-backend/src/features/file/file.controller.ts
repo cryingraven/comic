@@ -26,7 +26,7 @@ export class FileController {
   ) {
     console.log(req);
     const url = await this.storageService.uploadFile(
-      generateUUIDFileName(file),
+      generateUUIDFileName(),
       file,
     );
     return BasicResponseDto.success('Upload file successfully', url);

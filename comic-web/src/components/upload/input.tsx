@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Container } from '@mui/material'
+import { Avatar, Container } from '@mui/material'
 import { useDropzone } from 'react-dropzone'
-import Image from 'next/image'
+import { getImageUrl } from '@/utils/imageurl'
 
 interface UploadInputProps {
 	oldImage?: string
@@ -39,13 +39,14 @@ const UploadInput = ({ oldImage, onChange }: UploadInputProps) => {
 				{files.length > 0 && (
 					<div>
 						{files.map((file, index) => (
-							<div key={index} className="mt-4 flex w-full">
-								<Image
+							<div
+								key={index}
+								className="mt-4 flex w-full items-center justify-center"
+							>
+								<Avatar
 									src={URL.createObjectURL(file)}
-									alt={file.name}
-									className="w-full"
-									width={100}
-									height={100}
+									sx={{ width: 100, height: 100 }}
+									className="border border-gray-300"
 								/>
 							</div>
 						))}
@@ -53,17 +54,11 @@ const UploadInput = ({ oldImage, onChange }: UploadInputProps) => {
 				)}
 
 				{files.length === 0 && oldImage && (
-					<div className="mt-4 flex w-full">
-						<Image
-							src={
-								oldImage.includes('http')
-									? oldImage
-									: `https://images.24comic.com/${oldImage}`
-							}
-							alt="Old Image"
-							className="w-full"
-							width={100}
-							height={100}
+					<div className="justify-center items-center mt-4 flex w-full">
+						<Avatar
+							src={getImageUrl(oldImage) || ''}
+							sx={{ width: 100, height: 100 }}
+							className="border border-gray-300"
 						/>
 					</div>
 				)}

@@ -118,8 +118,23 @@ export class PaymentService {
             user_id: user.user_id,
             comic_id: comicId,
             chapter_id: chapterId,
-            amount: chapter.price * 1000,
+            amount: 0 - chapter.price * 1000,
             type: 'buy-comic',
+            status: 'success',
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        await this.transactionModel.create(
+          {
+            user_id: author.user_id,
+            comic_id: comicId,
+            chapter_id: chapterId,
+            amount: chapter.price * 1000,
+            type: 'sell-comic',
+            status: 'success',
           },
           {
             transaction: t,
@@ -229,6 +244,79 @@ export class PaymentService {
         payment_id: paymentId,
       },
     });
+  }
+
+  async giveDonation(
+    firebaseUid: string,
+    authorId: number,
+    amount: number,
+    paymentMethodId: number,
+  ) {
+    try {
+      const result = await this.sequelize.transaction(async (t) => {
+        const user = await this.userModel.findOne({
+          where: {
+            firebase_uid: firebaseUid,
+          },
+        });
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const author = await this.userModel.findOne({
+          where: {
+            user_id: authorId,
+          },
+        });
+        if (!author) {
+          throw new Error('Author not found');
+        }
+        const paymentMethod = await this.paymentMethodModel.findOne({
+          where: {
+            method_id: paymentMethodId,
+          },
+        });
+        if (!paymentMethod) {
+          throw new Error('Payment method not found');
+        }
+        const payment = await this.paymentModel.create(
+          {
+            user_id: user.user_id,
+            payment_method_id: paymentMethod.method_id,
+            type: 'donation',
+            amount: amount,
+            amount_to_add: 0,
+            status: 'pending',
+            extra: JSON.stringify({
+              author_id: authorId,
+              amount: amount,
+            }),
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        const midtransResponse =
+          await this.midtransService.createPaymentRequest(
+            paymentMethod.method_type,
+            paymentMethod.method_name,
+            amount,
+            payment.payment_id.toString(),
+          );
+        payment.payment_response = JSON.stringify(midtransResponse);
+
+        await payment.save({
+          transaction: t,
+        });
+
+        return midtransResponse;
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 
   async buyChapterFiat(
@@ -399,9 +487,62 @@ export class PaymentService {
                 chapter_id: extra.chapter_id,
                 comic_id: extra.comic_id,
               },
+              include: [
+                {
+                  model: this.comicModel,
+                },
+              ],
+            });
+
+            if (!chapter) {
+              throw new Error('Chapter not found');
+            }
+
+            const author = await this.userModel.findOne({
+              where: {
+                user_id: chapter.comic.user_id,
+              },
+            });
+
+            if (!author) {
+              throw new Error('Author not found');
+            }
+
+            author.wallet_balance += chapter.fiat_price;
+
+            await author.save({
+              transaction: t,
             });
 
             const userId = payment.user_id;
+
+            await this.transactionModel.create(
+              {
+                user_id: userId,
+                comic_id: chapter.comic_id,
+                chapter_id: chapter.chapter_id,
+                amount: chapter.fiat_price,
+                type: 'buy-comic',
+                status: 'success',
+              },
+              {
+                transaction: t,
+              },
+            );
+
+            await this.transactionModel.create(
+              {
+                user_id: author.user_id,
+                comic_id: chapter.comic_id,
+                chapter_id: chapter.chapter_id,
+                amount: chapter.fiat_price,
+                type: 'sell-comic',
+                status: 'success',
+              },
+              {
+                transaction: t,
+              },
+            );
 
             const access = await this.accessModel.create(
               {
@@ -416,6 +557,46 @@ export class PaymentService {
             );
 
             return access;
+          }
+
+          if (payment.type === 'donation') {
+            const extra = JSON.parse(payment.extra);
+
+            const author = await this.userModel.findOne({
+              where: {
+                user_id: extra.author_id,
+              },
+            });
+
+            author.wallet_balance += payment.amount_to_add;
+
+            await author.save({
+              transaction: t,
+            });
+
+            await this.transactionModel.create(
+              {
+                user_id: payment.user_id,
+                amount: payment.amount_to_add,
+                type: 'give-donation',
+                status: 'success',
+              },
+              {
+                transaction: t,
+              },
+            );
+
+            await this.transactionModel.create(
+              {
+                user_id: author.user_id,
+                amount: payment.amount_to_add,
+                type: 'receive-donation',
+                status: 'success',
+              },
+              {
+                transaction: t,
+              },
+            );
           }
 
           return payment;

@@ -17,9 +17,9 @@ const CMSMasterLayout = ({ children }: { children: React.ReactNode }) => {
 						<BarChart className="text-black" />
 						<Typography className="flex-grow uppercase">Dashboard</Typography>
 					</Link>
-					<Link href="/cms/revenue" className="flex items-center gap-1">
+					<Link href="/cms/wallet" className="flex items-center gap-1">
 						<Money className="text-black" />
-						<Typography className="flex-grow uppercase">Revenue</Typography>
+						<Typography className="flex-grow uppercase">Wallet</Typography>
 					</Link>
 					<Link href="/cms/comics" className="flex items-center gap-1">
 						<Book className="text-black" />

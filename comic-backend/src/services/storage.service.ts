@@ -5,11 +5,11 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class StorageService {
   private s3Client: S3Client;
-  private bucketName: string = 'comic-pages';
+  private bucketName: string = 'images';
   constructor(private configService: ConfigService) {
-    const accessKeyId = this.configService.get<string>('R2_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('R2_SECRET_KEY');
-    const endpoint = this.configService.get<string>('R2_ENDPOINT');
+    const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY');
+    const endpoint = this.configService.get<string>('S3_ENDPOINT');
     this.s3Client = new S3Client({
       region: 'auto',
       endpoint,

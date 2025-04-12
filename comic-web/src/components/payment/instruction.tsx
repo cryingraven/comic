@@ -55,7 +55,19 @@ const PaymentInstruction = () => {
 							</div>
 							<div className="flex flex-col">
 								<p className="text-gray-600">Account Number:</p>
-								<p className="font-bold text-lg md:text-2xl text-gray-700 flex justify-between w-full">
+								<p
+									className="font-bold text-lg md:text-2xl text-gray-700 flex justify-between w-full cursor-pointer"
+									onClick={() => {
+										navigator.clipboard
+											.writeText(instruction?.va_numbers[0]?.va_number)
+											.then(() => {
+												alert('VA Number copied to clipboard!')
+											})
+											.catch((err) => {
+												console.error('Failed to copy: ', err)
+											})
+									}}
+								>
 									<span>{instruction?.va_numbers[0]?.va_number}</span>
 									<CopyAll />
 								</p>

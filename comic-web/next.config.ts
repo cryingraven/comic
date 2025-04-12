@@ -8,7 +8,9 @@ const nextConfig: NextConfig = {
 			'images.pexels.com',
 			'via.placeholder.com',
 			'images.24comic.com',
+			'comic-images.alanmr.com',
 			'lh3.googleusercontent.com',
+      'link.storjshare.io'
 		],
 	},
 }

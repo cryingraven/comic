@@ -116,6 +116,7 @@ export default function CheckoutPage() {
 						variant="outlined"
 						color="info"
 						className="p-2 md:p-4 rounded-full"
+						onClick={() => router.back()}
 					>
 						Back
 					</Button>

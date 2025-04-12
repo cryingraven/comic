@@ -20,6 +20,7 @@ const ChapterItem = ({ chapter }: ChapterItemProps) => {
 					alt={chapter.title}
 					width={200}
 					height={200}
+					content={'cover'}
 					className="rounded-lg md:w-32 md:h-32 w-20 h-20"
 				/>
 				<div className="flex flex-col md:flex-row flex-grow md:items-center">

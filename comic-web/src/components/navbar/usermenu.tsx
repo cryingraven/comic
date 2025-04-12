@@ -27,7 +27,11 @@ const UserMenu = () => {
 						className="flex items-center focus:outline-none w-full"
 					>
 						<Avatar
-							alt="Remy Sharp"
+							alt={(
+								data?.fullname ||
+								store.user?.displayName ||
+								'User'
+							).toUpperCase()}
 							src={
 								data && data.image
 									? getImageUrl(data.image)

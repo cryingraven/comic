@@ -17,9 +17,9 @@ const ComicItem = ({ data }: ComicItemProps) => {
 				<Image
 					src={getImageUrl(data.image)}
 					alt={data.title}
-					width={500}
-					height={300}
-					className="w-full h-60 object-center object-cover relative z-30 rounded-t-lg transition-transform transform hover:scale-105"
+					width={1000}
+					height={1000}
+					className="w-full h-70 object-center object-cover relative z-30 rounded-t-lg transition-transform transform hover:scale-105"
 				/>
 				<h2 className="text-sm md:text-md font-bold p-2 h-14 text-ellipsis">
 					{data.title}

@@ -59,30 +59,30 @@ export async function cli() {
 
       if (answer === 'create') {
         const queryInterface = sequelize.getQueryInterface();
-        // await queryInterface.createTable('users', User.getAttributes());
-        // await queryInterface.createTable('comics', Comic.getAttributes());
-        // await queryInterface.createTable('chapters', Chapter.getAttributes());
-        // await queryInterface.createTable('accesses', Access.getAttributes());
-        // await queryInterface.createTable('genres', Genre.getAttributes());
-        // await queryInterface.createTable('pages', Page.getAttributes());
-        // await queryInterface.createTable(
-        //   'payment_methods',
-        //   PaymentMethod.getAttributes(),
-        // );
-        // await queryInterface.createTable('payments', Payment.getAttributes());
-        // await queryInterface.createTable(
-        //   'read_histories',
-        //   ReadHistory.getAttributes(),
-        // );
-        // await queryInterface.createTable(
-        //   'notifications',
-        //   Notification.getAttributes(),
-        // );
-        // await queryInterface.createTable(
-        //   'favorites',
-        //   Favorites.getAttributes(),
-        // );
-        // await queryInterface.createTable('packages', Package.getAttributes());
+        await queryInterface.createTable('users', User.getAttributes());
+        await queryInterface.createTable('comics', Comic.getAttributes());
+        await queryInterface.createTable('chapters', Chapter.getAttributes());
+        await queryInterface.createTable('accesses', Access.getAttributes());
+        await queryInterface.createTable('genres', Genre.getAttributes());
+        await queryInterface.createTable('pages', Page.getAttributes());
+        await queryInterface.createTable(
+          'payment_methods',
+          PaymentMethod.getAttributes(),
+        );
+        await queryInterface.createTable('payments', Payment.getAttributes());
+        await queryInterface.createTable(
+          'read_histories',
+          ReadHistory.getAttributes(),
+        );
+        await queryInterface.createTable(
+          'notifications',
+          Notification.getAttributes(),
+        );
+        await queryInterface.createTable(
+          'favorites',
+          Favorites.getAttributes(),
+        );
+        await queryInterface.createTable('packages', Package.getAttributes());
         await queryInterface.createTable(
           'transactions',
           InternalTransaction.getAttributes(),

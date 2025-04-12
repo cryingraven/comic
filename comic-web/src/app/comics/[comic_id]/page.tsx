@@ -4,7 +4,7 @@ import ChapterItem from '@/components/items/chapter'
 import { Comic } from '@/models/comic'
 import AppService from '@/services/app'
 import { getImageUrl } from '@/utils/imageurl'
-import { Favorite, Share, Visibility } from '@mui/icons-material'
+import { AttachMoney, Favorite, Share, Visibility } from '@mui/icons-material'
 import { Button, CircularProgress, MenuItem, Select } from '@mui/material'
 import Image from 'next/image'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
@@ -15,6 +15,7 @@ import { Chapter } from '@/models/chapter'
 import { useState } from 'react'
 import { ShareSocial } from 'react-share-social'
 import useStore from '@/store'
+import DonationModal from '@/components/modals/donation'
 
 const ComicPage = () => {
 	const store = useStore()
@@ -24,6 +25,7 @@ const ComicPage = () => {
 	const comicId = params.comic_id
 	const router = useRouter()
 	const [showShare, setShowShare] = useState(false)
+	const [showDonationModal, setShowDonationModal] = useState(false)
 	const { data, isLoading } = useSWR<Comic>(`/r/comics/${comicId}`)
 
 	const getKey = (pageIndex: number) => {
@@ -153,17 +155,28 @@ const ComicPage = () => {
 							{formatNumber(data?.likes || 0)}
 						</div>
 					</div>
-					<Button
-						variant="contained"
-						color="primary"
-						className="rounded-full"
-						startIcon={<Share />}
-						onClick={() => {
-							setShowShare(!showShare)
-						}}
-					>
-						Share
-					</Button>
+					<div className="flex space-x-2">
+						<Button
+							variant="contained"
+							color="primary"
+							className="rounded-full"
+							startIcon={<Share />}
+							onClick={() => {
+								setShowShare(!showShare)
+							}}
+						>
+							Share
+						</Button>
+						<Button
+							variant="contained"
+							color="warning"
+							className="rounded-full"
+							startIcon={<AttachMoney />}
+							onClick={() => setShowDonationModal(true)}
+						>
+							Donate
+						</Button>
+					</div>
 				</div>
 			</div>
 			{showShare && (
@@ -184,6 +197,13 @@ const ComicPage = () => {
 						</Button>
 					</div>
 				</div>
+			)}
+			{showDonationModal && (
+				<DonationModal
+					authorId={data?.author?.user_id || 0}
+					open={showDonationModal}
+					handleClose={() => setShowDonationModal(false)}
+				/>
 			)}
 			<div className="container mx-auto relative z-40 -top-72 md:-top-80 p-3 md:p-10 mb-5 bg-white rounded-lg">
 				<h2 className="text-xl md:text-2xl font-bold mb-4">Description</h2>

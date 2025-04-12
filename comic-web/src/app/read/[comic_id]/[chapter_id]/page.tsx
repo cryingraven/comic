@@ -23,6 +23,7 @@ import { formatNumber } from '@/utils/format'
 import PurchaseModal from '@/components/modals/purchase'
 import useStore from '@/store'
 import AppService from '@/services/app'
+import clsx from 'clsx'
 
 const ComicReadingPage = () => {
 	const store = useStore()
@@ -126,8 +127,28 @@ const ComicReadingPage = () => {
 		}
 	}
 
+	const handleKeyDown = (event: KeyboardEvent) => {
+		if (comicLoading || chapterLoading) return
+
+		console.log(event.key)
+		if (comic?.comic_type === 'classic') {
+			if (event.key === 'ArrowRight') {
+				handleNextPage()
+			} else if (event.key === 'ArrowLeft') {
+				handlePreviousPage()
+			}
+		}
+	}
+
 	return (
-		<div className="w-full flex flex-col bg-black" onClick={toggleAppBar}>
+		<div
+			className="w-full flex flex-col bg-black"
+			onClick={toggleAppBar}
+			tabIndex={0}
+			onKeyDown={(event) => {
+				handleKeyDown(event as unknown as KeyboardEvent)
+			}}
+		>
 			{showAppBar && (
 				<AppBar position="fixed" className="bg-gray-100 text-black">
 					<Toolbar className="flex justify-between">
@@ -201,7 +222,12 @@ const ComicReadingPage = () => {
 					</Toolbar>
 				</AppBar>
 			)}
-			<div className="flex flex-col items-center container mx-auto max-w-[1024px]">
+			<div
+				className={clsx(
+					'flex flex-col items-center justify-center container mx-auto lg:max-w-[33%]',
+					comic?.comic_type === 'classic' ? 'h-screen' : 'h-auto'
+				)}
+			>
 				{!comicLoading &&
 					!chapterLoading &&
 					comic?.comic_type === 'classic' &&
