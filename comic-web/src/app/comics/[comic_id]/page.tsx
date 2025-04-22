@@ -133,19 +133,32 @@ const ComicPage = () => {
 								{formatNumber(data?.likes || 0)}
 							</div>
 						</div>
-						<Button
-							variant="contained"
-							color="primary"
-							className="rounded-full"
-							startIcon={<Share />}
-							onClick={() => setShowShare(!showShare)}
-						>
-							Share
-						</Button>
+						<div className="flex space-x-2">
+							<Button
+								variant="contained"
+								color="primary"
+								className="rounded-full"
+								startIcon={<Share />}
+								size="small"
+								onClick={() => setShowShare(!showShare)}
+							>
+								Share
+							</Button>
+							<Button
+								variant="contained"
+								color="warning"
+								className="rounded-full"
+								startIcon={<AttachMoney />}
+								size="small"
+								onClick={() => setShowDonationModal(true)}
+							>
+								Donate
+							</Button>
+						</div>
 					</div>
 				</div>
 				<div className="mt-4 hidden md:flex flex-col items-start space-y-2 text-white">
-					<div className="flex space-x-2 justify-center items-center">
+					<div className="flex space-x-2 justify-center items-center w-full">
 						<div className="flex space-x-2 justify-center items-center">
 							<Visibility className="text-white m-2" />{' '}
 							{formatNumber(data?.views || 0)}

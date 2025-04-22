@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { FirebaseService } from 'src/modules/firebase/firebase.service';
+import jwt from 'jsonwebtoken';
 
 @Injectable()
 export class FirebaseGuard implements CanActivate {

@@ -10,6 +10,8 @@ import { PaymentModule } from 'src/features/payment/payment.module';
 import { StorageService } from 'src/services/storage.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { FileModule } from 'src/features/file/file.module';
+import { PublicModule } from 'src/features/public/public.module';
+import { CMSModule } from 'src/features/cms/cms.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { FileModule } from 'src/features/file/file.module';
     ReaderModule,
     PaymentModule,
     FileModule,
+    PublicModule,
+    CMSModule,
   ],
   controllers: [AppController],
   providers: [AppService, StorageService],

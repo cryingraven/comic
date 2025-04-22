@@ -58,4 +58,19 @@ export default class DefaultBackendService {
 		const json = await response.json()
 		return json.data
 	}
+
+	async getLatestUpdate(skip: number, limit: number) {
+		const response = await fetch(
+			`${this.baseUrl}/public/blogs?skip=${skip}&limit=${limit}`
+		)
+
+		const json = await response.json()
+		return json.data
+	}
+
+	async getBlogById(id: number) {
+		const response = await fetch(`${this.baseUrl}/public/blogs/${id}`)
+		const json = await response.json()
+		return json.data
+	}
 }

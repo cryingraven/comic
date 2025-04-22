@@ -21,6 +21,7 @@ import { akoma_images } from './migrations/akoma-images';
 import { koomik } from './migrations/koomik';
 import { Package } from './models/package.model';
 import { InternalTransaction } from './models/transaction.model';
+import { Blog } from './models/blog.model';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -87,6 +88,7 @@ export async function cli() {
           'transactions',
           InternalTransaction.getAttributes(),
         );
+        await queryInterface.createTable('blogs', Blog.getAttributes());
         console.log('Table created');
       } else if (answer === 'migrate_akoma') {
         const akomaMongoUri = config.get('AKOMA_MONGO_URI');

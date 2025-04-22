@@ -53,4 +53,14 @@ export default class AppService {
 		const response = await AppService._axios.post('/users', data)
 		return response.data.data
 	}
+
+  async getCMSComics(skip: number, limit: number) {
+    const response = await AppService._axios.get('/cms/comics', {
+      params: {
+        skip,
+        limit,
+      },
+    })
+    return response.data.data
+  }
 }

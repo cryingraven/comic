@@ -3,7 +3,6 @@
 import { NextPage } from 'next'
 import Head from 'next/head'
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import {
 	Table,
 	TableBody,
@@ -14,33 +13,45 @@ import {
 	TableSortLabel,
 	TablePagination,
 	Button,
+	CircularProgress,
 } from '@mui/material'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { Comic } from '@/models/comic'
+import AppService from '@/services/app'
+import useStore from '@/store'
+import moment from 'moment'
+import { getImageUrl } from '@/utils/imageurl'
 
 const ManageComicPage: NextPage = () => {
 	const router = useRouter()
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const [comics, setComics] = useState<any[]>([])
+	const store = useStore()
+	const [comics, setComics] = useState<Comic[]>([])
 	const [order, setOrder] = useState<'asc' | 'desc'>('asc')
 	const [orderBy, setOrderBy] = useState('title')
 	const [page, setPage] = useState(0)
+	const [loading, setLoading] = useState(false)
 	const [rowsPerPage, setRowsPerPage] = useState(5)
 
+	const fetchComics = async () => {
+		setLoading(true)
+		try {
+			const comics = await AppService.instance(store.token || '').getCMSComics(
+				page * rowsPerPage,
+				rowsPerPage
+			)
+			setComics(comics)
+		} catch (error) {
+			console.error('Error fetching comics:', error)
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	useEffect(() => {
-		axios.get('https://jsonplaceholder.typicode.com/posts').then((response) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const dummyData = response.data.map((item: any, index: number) => ({
-				id: item.id,
-				image: `https://via.placeholder.com/150?text=Image+${index + 1}`,
-				title: item.title,
-				stats: Math.floor(Math.random() * 100),
-				numberOfChapters: Math.floor(Math.random() * 20),
-				publishedAt: new Date().toLocaleDateString(),
-			}))
-			setComics(dummyData)
-		})
-	}, [])
+		fetchComics()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [orderBy, order, page, rowsPerPage])
 
 	const handleRequestSort = (property: string) => {
 		const isAsc = orderBy === property && order === 'asc'
@@ -58,19 +69,6 @@ const ManageComicPage: NextPage = () => {
 		setRowsPerPage(parseInt(event.target.value, 10))
 		setPage(0)
 	}
-
-	const sortedComics = [...comics].sort((a, b) => {
-		if (order === 'asc') {
-			return a[orderBy] > b[orderBy] ? 1 : -1
-		} else {
-			return a[orderBy] < b[orderBy] ? 1 : -1
-		}
-	})
-
-	const paginatedComics = sortedComics.slice(
-		page * rowsPerPage,
-		page * rowsPerPage + rowsPerPage
-	)
 
 	return (
 		<div className="p-4 w-full">
@@ -131,52 +129,62 @@ const ManageComicPage: NextPage = () => {
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{paginatedComics.map((comic) => (
-							<TableRow key={comic.id}>
-								<TableCell>
-									<Image
-										src={comic.image}
-										alt={comic.title}
-										className="w-16 h-16 object-cover"
-										width={100}
-										height={100}
-									/>
-								</TableCell>
-								<TableCell>{comic.title}</TableCell>
-								<TableCell>{comic.stats}</TableCell>
-								<TableCell>{comic.numberOfChapters}</TableCell>
-								<TableCell>{comic.publishedAt}</TableCell>
-								<TableCell>
-									<div className="flex space-x-1">
-										<Button
-											variant="outlined"
-											color="primary"
-											size="small"
-											className="rounded-full"
-											onClick={() => router.push(`/cms/chapters/1`)}
-										>
-											Chapters
-										</Button>
-										<Button
-											variant="contained"
-											color="primary"
-											size="small"
-											className="rounded-full"
-										>
-											Edit
-										</Button>
-										<Button
-											variant="contained"
-											color="error"
-											size="small"
-											className="rounded-full"
-										>
-											Unpublish
-										</Button>
-									</div>
+						{loading && (
+							<TableRow>
+								<TableCell colSpan={6} className="text-center">
+									<CircularProgress />
 								</TableCell>
 							</TableRow>
-						))}
+						)}
+						{!loading &&
+							comics.map((comic) => (
+								<TableRow key={comic.comic_id}>
+									<TableCell>
+										<Image
+											src={getImageUrl(comic.image)}
+											alt={comic.title}
+											className="w-16 h-16 object-cover"
+											width={100}
+											height={100}
+										/>
+									</TableCell>
+									<TableCell>{comic.title}</TableCell>
+									<TableCell>{comic.likes}</TableCell>
+									<TableCell>{comic.comments}</TableCell>
+									<TableCell>
+										{moment(comic.created_at).format('LLL')}
+									</TableCell>
+									<TableCell>
+										<div className="flex space-x-1">
+											<Button
+												variant="outlined"
+												color="primary"
+												size="small"
+												className="rounded-full"
+												onClick={() => router.push(`/cms/chapters/1`)}
+											>
+												Chapters
+											</Button>
+											<Button
+												variant="contained"
+												color="primary"
+												size="small"
+												className="rounded-full"
+											>
+												Edit
+											</Button>
+											<Button
+												variant="contained"
+												color="error"
+												size="small"
+												className="rounded-full"
+											>
+												Unpublish
+											</Button>
+										</div>
+									</TableCell>
+								</TableRow>
+							))}
 					</TableBody>
 				</Table>
 			</TableContainer>
