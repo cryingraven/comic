@@ -11,7 +11,6 @@ import {
 	TableHead,
 	TableRow,
 	TableSortLabel,
-	TablePagination,
 	Button,
 	CircularProgress,
 } from '@mui/material'
@@ -22,6 +21,7 @@ import AppService from '@/services/app'
 import useStore from '@/store'
 import moment from 'moment'
 import { getImageUrl } from '@/utils/imageurl'
+import { formatNumber } from '@/utils/format'
 
 const ManageComicPage: NextPage = () => {
 	const router = useRouter()
@@ -29,17 +29,17 @@ const ManageComicPage: NextPage = () => {
 	const [comics, setComics] = useState<Comic[]>([])
 	const [order, setOrder] = useState<'asc' | 'desc'>('asc')
 	const [orderBy, setOrderBy] = useState('title')
-	const [page, setPage] = useState(0)
 	const [loading, setLoading] = useState(false)
-	const [rowsPerPage, setRowsPerPage] = useState(5)
 
 	const fetchComics = async () => {
 		setLoading(true)
 		try {
 			const comics = await AppService.instance(store.token || '').getCMSComics(
-				page * rowsPerPage,
-				rowsPerPage
+				0,
+				50
 			)
+
+			console.log(comics)
 			setComics(comics)
 		} catch (error) {
 			console.error('Error fetching comics:', error)
@@ -51,23 +51,11 @@ const ManageComicPage: NextPage = () => {
 	useEffect(() => {
 		fetchComics()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [orderBy, order, page, rowsPerPage])
-
+	}, [orderBy, order])
 	const handleRequestSort = (property: string) => {
 		const isAsc = orderBy === property && order === 'asc'
 		setOrder(isAsc ? 'desc' : 'asc')
 		setOrderBy(property)
-	}
-
-	const handleChangePage = (event: unknown, newPage: number) => {
-		setPage(newPage)
-	}
-
-	const handleChangeRowsPerPage = (
-		event: React.ChangeEvent<HTMLInputElement>
-	) => {
-		setRowsPerPage(parseInt(event.target.value, 10))
-		setPage(0)
 	}
 
 	return (
@@ -75,20 +63,23 @@ const ManageComicPage: NextPage = () => {
 			<Head>
 				<title>Manage Comic</title>
 			</Head>
-			<h1 className="text-2xl font-bold mb-4">Manage Comic Page</h1>
+			<div className="flex justify-between items-center mb-4">
+				<h1 className="text-2xl font-bold">Manage Comic Page</h1>
+				<Button
+					variant="contained"
+					color="primary"
+					size="small"
+					className="rounded-full"
+					onClick={() => router.push('/cms/comics/add')}
+				>
+					Add Comic
+				</Button>
+			</div>
 			<TableContainer className="my-4">
 				<Table className="w-full">
 					<TableHead>
 						<TableRow>
-							<TableCell>
-								<TableSortLabel
-									active={orderBy === 'image'}
-									direction={orderBy === 'image' ? order : 'asc'}
-									onClick={() => handleRequestSort('image')}
-								>
-									Image
-								</TableSortLabel>
-							</TableCell>
+							<TableCell>Image</TableCell>
 							<TableCell>
 								<TableSortLabel
 									active={orderBy === 'title'}
@@ -149,8 +140,14 @@ const ManageComicPage: NextPage = () => {
 										/>
 									</TableCell>
 									<TableCell>{comic.title}</TableCell>
-									<TableCell>{comic.likes}</TableCell>
-									<TableCell>{comic.comments}</TableCell>
+									<TableCell>
+										<div className="flex flex-col">
+											<p>Views: {formatNumber(comic.views)}</p>
+											<p>Likes: {formatNumber(comic.likes)}</p>
+											<p>Comments: {formatNumber(comic.comments)}</p>
+										</div>
+									</TableCell>
+									<TableCell>{comic.total_chapters}</TableCell>
 									<TableCell>
 										{moment(comic.created_at).format('LLL')}
 									</TableCell>
@@ -161,7 +158,9 @@ const ManageComicPage: NextPage = () => {
 												color="primary"
 												size="small"
 												className="rounded-full"
-												onClick={() => router.push(`/cms/chapters/1`)}
+												onClick={() =>
+													router.push(`/cms/chapters/${comic.comic_id}`)
+												}
 											>
 												Chapters
 											</Button>
@@ -188,15 +187,6 @@ const ManageComicPage: NextPage = () => {
 					</TableBody>
 				</Table>
 			</TableContainer>
-			<TablePagination
-				rowsPerPageOptions={[5, 10, 25]}
-				component="div"
-				count={comics.length}
-				rowsPerPage={rowsPerPage}
-				page={page}
-				onPageChange={handleChangePage}
-				onRowsPerPageChange={handleChangeRowsPerPage}
-			/>
 		</div>
 	)
 }

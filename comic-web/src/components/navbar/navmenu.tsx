@@ -18,10 +18,10 @@ const NavMenu = () => {
 				Genre
 			</Link>
 			<Link
-				href="/explore"
+				href="/news"
 				className="text-gray-700 sm:block hover:text-black text-lg"
 			>
-				Explore
+				News Update
 			</Link>
 		</>
 	)

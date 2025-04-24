@@ -14,6 +14,7 @@ export interface Comic {
 	genre: string
 	views: number
 	likes: number
+	total_chapters: number | null
 	shares: number
 	comments: number
 	created_at: Date

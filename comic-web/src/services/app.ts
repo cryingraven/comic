@@ -40,7 +40,7 @@ export default class AppService {
 		return response.data.data
 	}
 
-  async postMultipart(url: string, data: FormData) {
+	async postMultipart(url: string, data: FormData) {
 		const response = await AppService._axios.post(url, data, {
 			headers: {
 				'Content-Type': 'multipart/form-data',
@@ -54,13 +54,26 @@ export default class AppService {
 		return response.data.data
 	}
 
-  async getCMSComics(skip: number, limit: number) {
-    const response = await AppService._axios.get('/cms/comics', {
-      params: {
-        skip,
-        limit,
-      },
-    })
-    return response.data.data
-  }
+	async getCMSComics(skip: number, limit: number) {
+		const response = await AppService._axios.get('/cms/comics', {
+			params: {
+				skip,
+				limit,
+			},
+		})
+		return response.data.data
+	}
+
+	async getCMSChapters(comicId: number, skip: number, limit: number) {
+		const response = await AppService._axios.get(
+			`/cms/comics/${comicId}/chapters`,
+			{
+				params: {
+					skip,
+					limit,
+				},
+			}
+		)
+		return response.data.data
+	}
 }

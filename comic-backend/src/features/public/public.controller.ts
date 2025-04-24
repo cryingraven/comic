@@ -24,4 +24,10 @@ export class PublicController {
     const blog = await this.publicService.findBlogById(id);
     return BasicResponseDto.success('fetch blog success', blog);
   }
+
+  @Get('/banners/:position')
+  async getBannerByPosition(@Param('position') position: string) {
+    const banner = await this.publicService.getActiveBannerByPosition(position);
+    return ArrayResponseDto.success('fetch banner success', banner);
+  }
 }

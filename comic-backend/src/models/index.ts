@@ -1,4 +1,5 @@
 import { Access } from './access.model';
+import { Banner } from './banner.model';
 import { Blog } from './blog.model';
 import { Chapter } from './chapter.model';
 import { Comic } from './comic.model';
@@ -28,4 +29,5 @@ export const models = [
   Favorites,
   InternalTransaction,
   Blog,
+  Banner,
 ];

@@ -5,17 +5,18 @@ import Carousel from '@/components/hero/slider'
 import DefaultBackendService from '@/services/default'
 
 export default async function Home() {
-	const [topComics, exclusiveComics] = await Promise.all([
+	const [topComics, banners, exclusiveComics] = await Promise.all([
 		DefaultBackendService.instance().getTopComics(0, 12),
+		DefaultBackendService.instance().getActiveBannerByPosition('HT'),
 		DefaultBackendService.instance().getTopComics(0, 12),
 	])
 
 	return (
 		<div className="flex flex-col mx-auto min-h-screen container">
-			<Carousel />
+			<Carousel banners={banners} />
 			<ComicSlider title="Top Comics" comics={topComics} />
-			<AdsBanner />
 			<ComicSlider title="Exclusive Comics" comics={exclusiveComics} />
+			<AdsBanner />
 			<LatestBlogs />
 		</div>
 	)

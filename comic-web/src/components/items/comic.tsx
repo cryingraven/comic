@@ -19,7 +19,7 @@ const ComicItem = ({ data }: ComicItemProps) => {
 					alt={data.title}
 					width={1000}
 					height={1000}
-					className="w-full h-70 object-center object-cover relative z-30 rounded-t-lg transition-transform transform hover:scale-105"
+					className="w-full h-72 object-center object-cover relative z-30 rounded-t-lg transition-transform transform hover:scale-105"
 				/>
 				<h2 className="text-sm md:text-md font-bold p-2 h-14 text-ellipsis">
 					{data.title}

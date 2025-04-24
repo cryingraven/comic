@@ -73,4 +73,10 @@ export default class DefaultBackendService {
 		const json = await response.json()
 		return json.data
 	}
+
+  async getActiveBannerByPosition(position: string) {
+    const response = await fetch(`${this.baseUrl}/public/banners/${position}`)
+    const json = await response.json()
+    return json.data
+  }
 }
