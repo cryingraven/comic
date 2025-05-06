@@ -17,6 +17,8 @@ export class FirebaseGuard implements CanActivate {
     try {
       const user = await this.firebaseService.validateToken(token);
 
+      console.log(user);
+
       if (!user) return false;
 
       request['user'] = user;

@@ -66,6 +66,7 @@ const EditProfilePage = () => {
 			</Typography>
 			<form onSubmit={handleSubmit(onSubmit)} className="mt-4">
 				<UploadInput
+					mode="avatar"
 					oldImage={data?.image || ''}
 					onChange={(files: File[]) => {
 						if (files.length > 0) {

@@ -14,6 +14,11 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
     { type: QueryTypes.SELECT },
   )) as any[];
 
+  const genres = (await oldQueryInterface.sequelize.query(
+    'SELECT * FROM genre',
+    { type: QueryTypes.SELECT },
+  )) as any[];
+
   for (const oldComic of oldComics) {
     console.log(oldComic);
     const comicId = oldComic.id;
@@ -68,6 +73,15 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
       console.log(`Migrating comic ${oldComic.title}`);
 
       let newComicId = null;
+      let subgenre = '';
+
+      if (oldComic.genre_ids) {
+        const subgenreIds = oldComic.genre_ids.split(',');
+        subgenre = subgenreIds
+          .map((id: any) => genres.find((genre: any) => genre.id === id)?.name)
+          .join(', ');
+      }
+
       if (checkComic.length > 0) {
         newComicId = checkComic[0].comic_id;
       } else {
@@ -77,6 +91,7 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
             description: oldComic.synopsis || '',
             comic_type: oldComic.comic_type || '',
             genre: oldComic.genre || 'No Genre',
+            subgenres: subgenre || '',
             image: oldComic.cover_photo_large || oldComic.banner_photo || '',
             cover: oldComic.banner_photo_large || oldComic.cover_photo || '',
             banner: oldComic.editor_choice_photo || '',

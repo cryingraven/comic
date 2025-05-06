@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { generateKeyPairSync } from 'crypto';
+import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
+import { Genre } from 'src/models/genre.model';
 import { User } from 'src/models/user.model';
 
 @Injectable()
@@ -14,6 +17,8 @@ export default class CMSService {
     private chapterModel: typeof Chapter,
     @InjectModel(User)
     private userModel: typeof User,
+    @InjectModel(Genre)
+    private genreModel: typeof Genre,
     private sequelize: Sequelize,
   ) {}
 
@@ -64,5 +69,17 @@ export default class CMSService {
     });
 
     return result;
+  }
+
+  async getAllGenresForInput() {
+    const genres = await this.genreModel.findAll({
+      where: {
+        id: {
+          [Op.ne]: 27,
+        },
+      },
+    });
+
+    return genres;
   }
 }

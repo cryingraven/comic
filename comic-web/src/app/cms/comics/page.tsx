@@ -72,7 +72,7 @@ const ManageComicPage: NextPage = () => {
 					className="rounded-full"
 					onClick={() => router.push('/cms/comics/add')}
 				>
-					Add Comic
+					New Comic
 				</Button>
 			</div>
 			<TableContainer className="my-4">

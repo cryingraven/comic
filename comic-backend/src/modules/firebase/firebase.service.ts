@@ -3,6 +3,7 @@ import { credential } from 'firebase-admin';
 import { initializeApp, Credential, getApp, App } from 'firebase-admin/app';
 import { Auth, getAuth } from 'firebase-admin/auth';
 import { getMessaging, Messaging } from 'firebase-admin/messaging';
+import jwt from 'jsonwebtoken';
 
 @Injectable()
 export class FirebaseService {
@@ -31,6 +32,10 @@ export class FirebaseService {
 
   validateToken(token: string) {
     return this.auth.verifyIdToken(token);
+  }
+
+  async decodeToken(token: string) {
+    return jwt.decode(token);
   }
 
   getUserByUid(uid: string) {

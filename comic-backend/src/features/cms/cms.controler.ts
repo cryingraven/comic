@@ -42,4 +42,11 @@ export class CMSController {
 
     return BasicResponseDto.success('success', data);
   }
+
+  @Get('genres')
+  @UseGuards(FirebaseGuard)
+  async getAllGenresForInput() {
+    const data = await this.cmsService.getAllGenresForInput();
+    return ArrayResponseDto.success('success', data);
+  }
 }

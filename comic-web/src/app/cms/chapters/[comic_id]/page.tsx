@@ -97,9 +97,9 @@ const ManageChapterPage: NextPage = () => {
 					color="primary"
 					size="small"
 					className="rounded-full"
-					onClick={() => router.push('/cms/chapters/add')}
+					onClick={() => router.push(`/cms/chapters/${comic_id}/add`)}
 				>
-					Add Chapter
+					New Chapter
 				</Button>
 			</div>
 			<TableContainer className="my-4">

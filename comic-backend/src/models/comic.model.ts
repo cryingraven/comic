@@ -59,6 +59,9 @@ export class Comic extends Model {
   @Column
   genre: string;
 
+  @Column
+  subgenres: string;
+
   @Default(0)
   @Column
   views: number;

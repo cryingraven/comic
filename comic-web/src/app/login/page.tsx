@@ -42,10 +42,10 @@ const LoginPage = () => {
 			const user = cred.user
 			const token = await user.getIdToken()
 
-			await AppService.instance(token).saveProfile({})
-
 			store.setUser(user)
 			store.setToken(token)
+
+			await AppService.instance(token).saveProfile({})
 			router.push('/')
 		} catch (error) {
 			console.log(error)
@@ -60,11 +60,10 @@ const LoginPage = () => {
 			const cred = await signInWithPopup(firebaseAuth, provider)
 			const user = cred.user
 			const token = await user.getIdToken()
-
-			await AppService.instance(token).saveProfile({})
-
 			store.setUser(user)
 			store.setToken(token)
+
+			await AppService.instance(token).saveProfile({})
 			router.push('/')
 		} catch (error) {
 			console.log(error)
