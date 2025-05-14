@@ -13,6 +13,7 @@ export interface Chapter {
 	comments: number
 	shares: number
 	accesses?: Access[]
+	published_at: Date
 	created_at: Date
 	updated_at: Date
 }

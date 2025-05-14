@@ -19,10 +19,13 @@ export class UserService {
     const user = await this.firebaseService.getUserByUid(firebaseUid);
 
     const existingProfile = await this.user.findOne({
-      where: { firebase_uid: firebaseUid },
+      where: {
+        email: user.email,
+      },
     });
 
     if (existingProfile) {
+      existingProfile.firebase_uid = firebaseUid;
       if (profile.fullname) existingProfile.fullname = profile.fullname;
       if (profile.phone) existingProfile.phone_number = profile.phone;
       if (profile.image) existingProfile.image = profile.image;

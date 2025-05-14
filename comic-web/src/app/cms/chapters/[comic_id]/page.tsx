@@ -193,6 +193,11 @@ const ManageChapterPage: NextPage = () => {
 												color="primary"
 												size="small"
 												className="rounded-full"
+												onClick={() =>
+													router.push(
+														`/cms/chapters/${comic_id}/edit/${chapter.chapter_id}`
+													)
+												}
 											>
 												Edit
 											</Button>

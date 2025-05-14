@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import {
 	TextField,
@@ -23,6 +25,8 @@ import UploadInput from '@/components/upload/input'
 import AppService from '@/services/app'
 import { retry } from '@/utils/retry'
 import useStore from '@/store'
+import { Chapter } from '@/models/chapter'
+import { getImageUrl } from '@/utils/imageurl'
 
 interface ChapterFormData {
 	title: string
@@ -56,17 +60,20 @@ const ChapterEditPage = () => {
 	const [images, setImages] = useState<Page[]>([])
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [chapter, setChapter] = useState<Chapter | null>(null)
 	const store = useStore()
 
 	useEffect(() => {
 		const fetchChapter = async () => {
 			setIsLoading(true)
 			try {
-				const chapter = await retry(() =>
+				const chapter = (await retry(() =>
 					AppService.instance(store.token || '').get(
 						`/cms/chapters/${chapter_id}`
 					)
-				)
+				)) as Chapter
+
+				setChapter(chapter)
 				reset({
 					title: chapter.title,
 					subtitle: chapter.subtitle,
@@ -74,22 +81,22 @@ const ChapterEditPage = () => {
 						fiatPrice: chapter.fiat_price,
 						coinPrice: chapter.price,
 					},
-					images: chapter.pages.map((page: string) => ({
-						url: page,
-						file: null,
-					})),
+					// images: chapter.pages.map((page: string) => ({
+					// 	url: page,
+					// 	file: null,
+					// })),
 					publishedAt: chapter.published_at
 						? new Date(chapter.published_at)
 						: null,
 				})
-				setImages(
-					chapter.pages.map((page: string) => ({
-						url: page,
-						file: null,
-					}))
-				)
+				// setImages(
+				// 	chapter.pages.map((page: string) => ({
+				// 		url: page,
+				// 		file: null,
+				// 	}))
+				// )
 				setThumb(null)
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} catch (e: any) {
 				setError(e.message)
 			}
@@ -205,6 +212,7 @@ const ChapterEditPage = () => {
 				<UploadInput
 					label={'Thumbnail max. 2MB'}
 					showLabel={true}
+					oldImage={chapter?.image ? getImageUrl(chapter.image) : ''}
 					onChange={(files: File[]) => {
 						if (files.length > 0) {
 							setThumb(files[0])
