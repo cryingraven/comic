@@ -125,7 +125,7 @@ const InputComic: React.FC = () => {
 				AppService.instance(store.token || '').post('/cms/comics', newComic)
 			)
 
-			router.push('/comics')
+			router.push('/cms/comics')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (e: any) {
 			setError(e.message)
