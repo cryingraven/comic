@@ -169,6 +169,9 @@ const ManageComicPage: NextPage = () => {
 												color="primary"
 												size="small"
 												className="rounded-full"
+												onClick={() =>
+													router.push(`/cms/comics/edit/${comic.comic_id}`)
+												}
 											>
 												Edit
 											</Button>

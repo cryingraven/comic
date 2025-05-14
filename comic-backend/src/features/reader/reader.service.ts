@@ -36,7 +36,16 @@ export class ReaderService {
     const filter = {};
 
     if (genre) {
-      filter['genre'] = genre;
+      filter[Op.or] = [
+        {
+          genre: genre,
+        },
+        {
+          subgenres: {
+            [Op.like]: `%${genre}%`,
+          },
+        },
+      ];
     }
 
     if (authorId) {

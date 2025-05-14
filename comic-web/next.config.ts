@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
 			'link.storjshare.io',
 		],
 	},
+	reactStrictMode: false,
 }
 
 export default nextConfig

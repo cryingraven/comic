@@ -17,15 +17,17 @@ import {
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import UploadInput from '@/components/upload/input'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import moment from 'moment'
 import { Genre } from '@/models/genre'
 import useStore from '@/store'
 import AppService from '@/services/app'
 import { DateTimePicker } from '@mui/x-date-pickers'
 import { retry } from '@/utils/retry'
+import { Comic } from '@/models/comic'
+import { getImageUrl } from '@/utils/imageurl'
 
-interface CreateComicForm {
+interface EditComicForm {
 	title: string
 	description: string
 	mainGenre: Genre
@@ -34,10 +36,11 @@ interface CreateComicForm {
 	publishAt: Date | null
 }
 
-const InputComic: React.FC = () => {
+const EditComic: React.FC = () => {
 	const router = useRouter()
+	const params = useParams()
 	const store = useStore()
-	const { control, handleSubmit } = useForm<CreateComicForm>()
+	const { control, handleSubmit, setValue } = useForm<EditComicForm>()
 	const comicTypes = ['series', 'classic']
 	const [image, setImage] = useState<File | null>(null)
 	const [cover, setCover] = useState<File | null>(null)
@@ -45,6 +48,7 @@ const InputComic: React.FC = () => {
 	const [genres, setGenres] = useState<Genre[]>()
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [comic, setComic] = useState<Comic | null>(null)
 
 	const fetchGenres = async () => {
 		const genres = await AppService.instance(store.token || '').get(
@@ -53,20 +57,42 @@ const InputComic: React.FC = () => {
 		setGenres(genres)
 	}
 
+	const fetchComic = async () => {
+		const comicId = params.comic_id as string
+		const comic = (await AppService.instance(store.token || '').get(
+			`/cms/comics/${comicId}`
+		)) as Comic
+		setComic(comic)
+		setValue('title', comic.title)
+		setValue('description', comic.description)
+		const selectedMainGenre = genres?.find(
+			(genre) => genre.name === comic.genre
+		)
+		const subgenres = comic.subgenres.split(',')
+		const selectedSubGenres = genres?.filter((genre) =>
+			subgenres.includes(genre.name)
+		)
+		if (selectedMainGenre) {
+			setValue('mainGenre', selectedMainGenre)
+		}
+		if (selectedSubGenres) {
+			setValue('subGenre', selectedSubGenres)
+		}
+		setValue('comicType', comic.comic_type)
+		setValue('publishAt', comic.published_at)
+	}
+
 	useEffect(() => {
 		fetchGenres()
+		fetchComic()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const onSubmit = async (data: CreateComicForm) => {
+	const onSubmit = async (data: EditComicForm) => {
 		setIsLoading(true)
 		setError(null)
 
 		try {
-			if (!image || !cover || !banner) {
-				throw new Error('Please upload all required images.')
-			}
-
 			let bannerUrl: string | null = null
 			let coverUrl: string | null = null
 			let imageUrl: string | null = null
@@ -109,7 +135,7 @@ const InputComic: React.FC = () => {
 				bannerUrl = filename
 			}
 
-			const newComic = {
+			const updatedComic = {
 				title: data.title,
 				description: data.description,
 				genre: data.mainGenre.name,
@@ -121,11 +147,32 @@ const InputComic: React.FC = () => {
 				banner: bannerUrl,
 			}
 
+			if (banner) {
+				updatedComic.banner = bannerUrl
+			} else {
+				updatedComic.banner = comic?.banner || null
+			}
+
+			if (cover) {
+				updatedComic.cover = coverUrl
+			} else {
+				updatedComic.cover = comic?.cover || null
+			}
+
+			if (image) {
+				updatedComic.image = imageUrl
+			} else {
+				updatedComic.image = comic?.image || null
+			}
+
 			await retry(() =>
-				AppService.instance(store.token || '').post('/cms/comics', newComic)
+				AppService.instance(store.token || '').post(
+					`/cms/comics/${comic?.comic_id}`,
+					updatedComic
+				)
 			)
 
-			router.push('/comics')
+			router.push('/cms/comics')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (e: any) {
 			setError(e.message)
@@ -137,7 +184,7 @@ const InputComic: React.FC = () => {
 	return (
 		<Container maxWidth="md" className="p-5">
 			<Typography variant="h4" gutterBottom>
-				Create Comic
+				Edit Comic
 			</Typography>
 			<form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
 				{error && (
@@ -148,6 +195,7 @@ const InputComic: React.FC = () => {
 				<UploadInput
 					label={'Main comic / Profile image max. 2MB'}
 					showLabel={true}
+					oldImage={comic?.image ? getImageUrl(comic?.image) : ''}
 					onChange={(files: File[]) => {
 						if (files.length > 0) {
 							setImage(files[0])
@@ -157,6 +205,7 @@ const InputComic: React.FC = () => {
 				<UploadInput
 					label="Cover image / Thumbnail max. 2MB"
 					showLabel={true}
+					oldImage={comic?.cover ? getImageUrl(comic?.cover) : ''}
 					onChange={(files: File[]) => {
 						if (files.length > 0) {
 							setCover(files[0])
@@ -166,6 +215,7 @@ const InputComic: React.FC = () => {
 				<UploadInput
 					label="Banner / Background image max. 2MB"
 					showLabel={true}
+					oldImage={comic?.banner ? getImageUrl(comic?.banner) : ''}
 					onChange={(files: File[]) => {
 						if (files.length > 0) {
 							setBanner(files[0])
@@ -311,4 +361,4 @@ const InputComic: React.FC = () => {
 	)
 }
 
-export default InputComic
+export default EditComic

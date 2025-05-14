@@ -7,10 +7,11 @@ import { FirebaseModule } from 'src/modules/firebase/firebase.module';
 import { Chapter } from 'src/models/chapter.model';
 import { User } from 'src/models/user.model';
 import { Genre } from 'src/models/genre.model';
+import { Page } from 'src/models/page.model';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Comic, Chapter, User, Genre]),
+    SequelizeModule.forFeature([Comic, Chapter, Page, User, Genre]),
     FirebaseModule,
   ],
   controllers: [CMSController],

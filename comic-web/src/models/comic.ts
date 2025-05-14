@@ -12,11 +12,13 @@ export interface Comic {
 	user_id: number
 	author?: User
 	genre: string
+	subgenres: string
 	views: number
 	likes: number
 	total_chapters: number | null
 	shares: number
 	comments: number
+	published_at: Date
 	created_at: Date
 	updated_at: Date
 }

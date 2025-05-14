@@ -8,7 +8,14 @@ export default async function Home() {
 	const [topComics, banners, exclusiveComics] = await Promise.all([
 		DefaultBackendService.instance().getTopComics(0, 12),
 		DefaultBackendService.instance().getActiveBannerByPosition('HT'),
-		DefaultBackendService.instance().getTopComics(0, 12),
+		DefaultBackendService.instance().getComics(
+			'Exclusive',
+			undefined,
+			0,
+			12,
+			'views::desc'
+		),
+		DefaultBackendService.instance().getTopComics,
 	])
 
 	return (

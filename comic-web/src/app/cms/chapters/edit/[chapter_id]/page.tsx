@@ -1,9 +1,4 @@
-/*
-eslint-disable @typescript-eslint/no-explicit-any
-*/
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
 	TextField,
 	Button,
@@ -42,10 +37,10 @@ interface Page {
 	file: File
 }
 
-const ChapterCreationPage = () => {
+const ChapterEditPage = () => {
 	const router = useRouter()
-	const { comic_id } = useParams()
-	const { control, handleSubmit, setValue } = useForm<ChapterFormData>({
+	const { comic_id, chapter_id } = useParams()
+	const { control, handleSubmit, setValue, reset } = useForm<ChapterFormData>({
 		defaultValues: {
 			title: '',
 			subtitle: '',
@@ -63,6 +58,47 @@ const ChapterCreationPage = () => {
 	const [error, setError] = useState<string | null>(null)
 	const store = useStore()
 
+	useEffect(() => {
+		const fetchChapter = async () => {
+			setIsLoading(true)
+			try {
+				const chapter = await retry(() =>
+					AppService.instance(store.token || '').get(
+						`/cms/chapters/${chapter_id}`
+					)
+				)
+				reset({
+					title: chapter.title,
+					subtitle: chapter.subtitle,
+					price: {
+						fiatPrice: chapter.fiat_price,
+						coinPrice: chapter.price,
+					},
+					images: chapter.pages.map((page: string) => ({
+						url: page,
+						file: null,
+					})),
+					publishedAt: chapter.published_at
+						? new Date(chapter.published_at)
+						: null,
+				})
+				setImages(
+					chapter.pages.map((page: string) => ({
+						url: page,
+						file: null,
+					}))
+				)
+				setThumb(null)
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} catch (e: any) {
+				setError(e.message)
+			}
+			setIsLoading(false)
+		}
+
+		fetchChapter()
+	}, [chapter_id, reset, store.token])
+
 	const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(event.target.files || [])
 		const newImages = files.map((file) => ({
@@ -73,6 +109,7 @@ const ChapterCreationPage = () => {
 		setValue('images', newImages)
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const handleSortEnd = (result: any) => {
 		if (!result.destination) return
 
@@ -138,10 +175,14 @@ const ChapterCreationPage = () => {
 			}
 
 			await retry(() =>
-				AppService.instance(store.token || '').post('/cms/chapters', chapter)
+				AppService.instance(store.token || '').post(
+					`/cms/chapters/${chapter_id}`,
+					chapter
+				)
 			)
 
 			router.push(`/cms/chapters/${comic_id}`)
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (e: any) {
 			setError(e.message)
 		}
@@ -150,7 +191,7 @@ const ChapterCreationPage = () => {
 
 	return (
 		<Container maxWidth="md" className="p-5">
-			<h1 className="text-2xl font-bold mb-4">Create Chapter</h1>
+			<h1 className="text-2xl font-bold mb-4">Edit Chapter</h1>
 			<form
 				className="space-y-4 flex flex-col"
 				onSubmit={handleSubmit(onSubmit)}
@@ -289,7 +330,7 @@ const ChapterCreationPage = () => {
 					disabled={isLoading}
 					startIcon={isLoading ? <CircularProgress size={20} /> : null}
 				>
-					Create Chapter
+					Update Chapter
 				</Button>
 
 				<Button
@@ -308,4 +349,4 @@ const ChapterCreationPage = () => {
 	)
 }
 
-export default ChapterCreationPage
+export default ChapterEditPage

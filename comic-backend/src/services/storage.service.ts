@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class StorageService {
   private s3Client: S3Client;
-  private bucketName: string = 'images';
+  private bucketName: string = '24comic';
   constructor(private configService: ConfigService) {
     const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY_ID');
     const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY');
@@ -34,7 +34,7 @@ export class StorageService {
   }
 
   public async getFileURL(fileName: string) {
-    return `https://images.24comic.com/${fileName}`;
+    return `https://link.storjshare.io/s/jvdv4jlrplsxtowxpy3jn3wfh57a/24comic/${fileName}?wrap=0`;
   }
 
   public async saveFile(fileName: string, buffer: Buffer, mimetype: string) {
