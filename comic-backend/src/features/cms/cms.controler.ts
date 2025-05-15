@@ -124,4 +124,11 @@ export class CMSController {
     );
     return BasicResponseDto.success('success', data);
   }
+
+  @Get('chapters/:chapterId/pages')
+  @UseGuards(FirebaseGuard)
+  async getChapterPages(@Param('chapterId') chapterId: number) {
+    const data = await this.cmsService.getChapterPages(chapterId);
+    return BasicResponseDto.success('success', data);
+  }
 }

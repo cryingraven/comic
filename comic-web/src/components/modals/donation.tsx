@@ -77,7 +77,7 @@ const DonationModal = ({ open, handleClose, authorId }: DonationModalProps) => {
 
 	return (
 		<Modal open={open} onClose={handleClose}>
-			<Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-1/ min-w-[300px] max-w-[400px]">
+			<Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-1/3 min-w-[300px] max-w-[400px]">
 				<Typography variant="h6" className="mb-4">
 					Donation
 				</Typography>

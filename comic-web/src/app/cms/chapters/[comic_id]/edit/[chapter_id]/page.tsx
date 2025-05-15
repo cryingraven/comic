@@ -11,6 +11,8 @@ import {
 	Container,
 	Alert,
 	CircularProgress,
+	Modal,
+	Box,
 } from '@mui/material'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import Image from 'next/image'
@@ -61,41 +63,40 @@ const ChapterEditPage = () => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [chapter, setChapter] = useState<Chapter | null>(null)
+	const [oldImages, setOldImages] = useState<string[]>([])
+	const [showOldImagesModal, setShowOldImagesModal] = useState(false)
 	const store = useStore()
 
 	useEffect(() => {
 		const fetchChapter = async () => {
 			setIsLoading(true)
 			try {
-				const chapter = (await retry(() =>
-					AppService.instance(store.token || '').get(
-						`/cms/chapters/${chapter_id}`
-					)
+				const chapter = (await AppService.instance(store.token || '').get(
+					`/cms/chapters/${chapter_id}`
 				)) as Chapter
 
 				setChapter(chapter)
 				reset({
 					title: chapter.title,
 					subtitle: chapter.subtitle,
-					price: {
-						fiatPrice: chapter.fiat_price,
-						coinPrice: chapter.price,
+					price: chapterPrices.find(
+						(price) => price.coinPrice === chapter.price
+					) || {
+						fiatPrice: 0,
+						coinPrice: 0,
 					},
-					// images: chapter.pages.map((page: string) => ({
-					// 	url: page,
-					// 	file: null,
-					// })),
+					images: [],
 					publishedAt: chapter.published_at
 						? new Date(chapter.published_at)
 						: null,
 				})
-				// setImages(
-				// 	chapter.pages.map((page: string) => ({
-				// 		url: page,
-				// 		file: null,
-				// 	}))
-				// )
 				setThumb(null)
+				setImages([])
+
+				const pages = await AppService.instance(store.token || '').get(
+					`/cms/chapters/${chapter_id}/pages`
+				)
+				setOldImages(pages.map((page: { image: string }) => page.image))
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} catch (e: any) {
 				setError(e.message)
@@ -137,10 +138,6 @@ const ChapterEditPage = () => {
 		setIsLoading(true)
 		setError(null)
 		try {
-			if (!thumb) throw new Error('Thumbnail is required')
-
-			if (data.images.length === 0) throw new Error('Images are required')
-
 			let imageUrl: string | null = null
 			if (thumb) {
 				const formData = new FormData()
@@ -170,21 +167,21 @@ const ChapterEditPage = () => {
 				pages.push(filename)
 			}
 
-			const chapter = {
+			const updatedChapter = {
 				title: data.title,
 				subtitle: data.subtitle,
 				price: data.price.coinPrice || 0,
 				fiat_price: data.price.fiatPrice || 0,
-				pages: pages,
+				pages: pages.length > 0 ? pages : oldImages,
 				published_at: data.publishedAt,
-				image: imageUrl,
+				image: imageUrl ? imageUrl : chapter ? chapter.image : null,
 				comic_id: parseInt(comic_id as string),
 			}
 
 			await retry(() =>
 				AppService.instance(store.token || '').post(
 					`/cms/chapters/${chapter_id}`,
-					chapter
+					updatedChapter
 				)
 			)
 
@@ -242,7 +239,7 @@ const ChapterEditPage = () => {
 					rules={{ required: 'Price is required' }}
 					render={({ field }) => (
 						<FormControl fullWidth>
-							<Select {...field}>
+							<Select {...field} value={field.value.coinPrice}>
 								{chapterPrices.map((price) => (
 									<MenuItem key={price.fiatPrice} value={price.coinPrice}>
 										Rp. {price.fiatPrice.toLocaleString('id-ID')} -{' '}
@@ -267,6 +264,16 @@ const ChapterEditPage = () => {
 						</LocalizationProvider>
 					)}
 				/>
+
+				<Button
+					onClick={() => setShowOldImagesModal(true)}
+					variant="outlined"
+					color="secondary"
+					type="button"
+					className="rounded-full"
+				>
+					Show Current Pages
+				</Button>
 				<input
 					type="file"
 					multiple
@@ -353,6 +360,47 @@ const ChapterEditPage = () => {
 					Cancel
 				</Button>
 			</form>
+
+			<Modal
+				open={showOldImagesModal}
+				onClose={() => setShowOldImagesModal(false)}
+				aria-labelledby="old-images-modal"
+				aria-describedby="old-images-modal-description"
+			>
+				<Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-1/3 min-w-[400px] max-w-[600px]">
+					<h2
+						id="old-images-modal"
+						className="text-center text-blue-300 font-bold"
+					>
+						PREVIEW
+					</h2>
+					<ul>
+						{oldImages.map((image, index) => (
+							<li key={index}>
+								<Image
+									src={getImageUrl(image)}
+									alt={`Old Image ${index}`}
+									width={1024}
+									height={1024}
+									className="w-full h-auto mb-2"
+								/>
+							</li>
+						))}
+					</ul>
+					<p className="text-sm">
+						Note: This is the old images, you can&apos;t edit it. If you want to
+						edit, please upload new images.
+					</p>
+					<Button
+						onClick={() => setShowOldImagesModal(false)}
+						variant="contained"
+						color="primary"
+						className="rounded-full w-full mt-2"
+					>
+						Close
+					</Button>
+				</Box>
+			</Modal>
 		</Container>
 	)
 }

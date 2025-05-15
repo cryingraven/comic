@@ -322,4 +322,13 @@ export default class CMSService {
 
     return chapter;
   }
+
+  async getChapterPages(chapterId: number) {
+    const pages = await this.pageModel.findAll({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+    return pages;
+  }
 }

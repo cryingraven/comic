@@ -2,24 +2,19 @@
 
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { TextField, Button, Container, Typography } from '@mui/material'
-import useStore from '@/store'
 import { useState } from 'react'
-import {
-	createUserWithEmailAndPassword,
-	sendEmailVerification,
-} from 'firebase/auth'
+import { sendPasswordResetEmail } from 'firebase/auth'
 import { firebaseAuth } from '@/providers/firebase'
 import { convertFirebaseAuthErrorToMessage } from '@/utils/error'
+
 type Inputs = {
 	email: string
-	password: string
-	confirmPassword: string
 }
 
-const RegisterPage = () => {
-	const store = useStore()
+const ForgotPasswordPage = () => {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState('')
+	const [success, setSuccess] = useState('')
 	const {
 		register,
 		handleSubmit,
@@ -28,16 +23,11 @@ const RegisterPage = () => {
 
 	const onSubmit: SubmitHandler<Inputs> = async (data) => {
 		setIsLoading(true)
+		setError('')
+		setSuccess('')
 		try {
-			const cred = await createUserWithEmailAndPassword(
-				firebaseAuth,
-				data.email,
-				data.password
-			)
-			const token = await cred.user.getIdToken()
-			await sendEmailVerification(cred.user)
-			store.setUser(cred.user)
-			store.setToken(token)
+			await sendPasswordResetEmail(firebaseAuth, data.email)
+			setSuccess('Password reset email sent!')
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
 			const errorMessage = convertFirebaseAuthErrorToMessage(error)
@@ -53,11 +43,19 @@ const RegisterPage = () => {
 				className="bg-white p-8 rounded shadow-md w-full max-w-sm"
 			>
 				<Typography variant="h5" className="mb-4">
-					Register
+					Forgot Password
 				</Typography>
 				{error && (
 					<Typography variant="body2" className="mt-2 text-red-500 text-center">
 						{error}
+					</Typography>
+				)}
+				{success && (
+					<Typography
+						variant="body2"
+						className="mt-2 text-green-500 text-center"
+					>
+						{success}
 					</Typography>
 				)}
 				<TextField
@@ -69,28 +67,6 @@ const RegisterPage = () => {
 					error={!!errors.email}
 					helperText={errors.email?.message}
 				/>
-				<TextField
-					{...register('password', { required: 'Password is required' })}
-					label="Password"
-					type="password"
-					variant="outlined"
-					fullWidth
-					margin="normal"
-					error={!!errors.password}
-					helperText={errors.password?.message}
-				/>
-				<TextField
-					{...register('confirmPassword', {
-						required: 'Confirm Password is required',
-					})}
-					label="Confirm Password"
-					type="password"
-					variant="outlined"
-					fullWidth
-					margin="normal"
-					error={!!errors.confirmPassword}
-					helperText={errors.confirmPassword?.message}
-				/>
 				<Button
 					type="submit"
 					variant="contained"
@@ -99,7 +75,7 @@ const RegisterPage = () => {
 					className="mt-2"
 					disabled={isLoading}
 				>
-					Register
+					Send Reset Email
 				</Button>
 				<Button
 					href="/login"
@@ -115,4 +91,4 @@ const RegisterPage = () => {
 	)
 }
 
-export default RegisterPage
+export default ForgotPasswordPage
