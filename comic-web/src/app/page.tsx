@@ -31,7 +31,7 @@ export default function Home() {
 					'views::desc'
 				),
 				DefaultBackendService.instance().getComics(
-					'New Release',
+					undefined,
 					undefined,
 					0,
 					12,
