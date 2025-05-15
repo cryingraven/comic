@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import {
 	MenuItem,
 	FormControl,
@@ -16,7 +16,7 @@ import AppService from '@/services/app'
 import { Comic } from '@/models/comic'
 import { useSearchParams } from 'next/navigation'
 
-const SearchResultPage = () => {
+const SearchResultPageContent = () => {
 	const query = useSearchParams().get('q') || ''
 	const [sortOrder, setSortOrder] = useState('created_at::desc')
 	const [searchQuery, setSearchQuery] = useState(query)
@@ -99,5 +99,11 @@ const SearchResultPage = () => {
 		</div>
 	)
 }
+
+const SearchResultPage = () => (
+	<Suspense fallback={<div>Loading...</div>}>
+		<SearchResultPageContent />
+	</Suspense>
+)
 
 export default SearchResultPage
