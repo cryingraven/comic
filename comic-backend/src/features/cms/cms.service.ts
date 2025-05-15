@@ -331,4 +331,34 @@ export default class CMSService {
     });
     return pages;
   }
+
+  async unPublishComic(comicId: number, userId: string) {
+    const checkComic = await this.comicModel.findOne({
+      where: {
+        comic_id: comicId,
+      },
+    });
+    if (!checkComic) {
+      throw new Error('Comic not found');
+    }
+
+    const profileAuthor = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!profileAuthor) {
+      throw new Error('User not found');
+    }
+
+    if (profileAuthor.user_id !== checkComic.user_id) {
+      throw new Error('You are not the author of this comic');
+    }
+    const unpublishedComic = checkComic;
+    unpublishedComic.published_at = null;
+    unpublishedComic.status = 'unpublished';
+    await unpublishedComic.save();
+    return unpublishedComic;
+  }
 }

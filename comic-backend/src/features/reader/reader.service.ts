@@ -59,6 +59,17 @@ export class ReaderService {
       };
     }
 
+    filter['status'] = {
+      [Op.ne]: 'unpublished',
+    };
+
+    filter['published_at'] = {
+      [Op.or]: {
+        [Op.eq]: null,
+        [Op.lte]: new Date(),
+      },
+    };
+
     return this.comic.findAll({
       include: [User],
       where: filter,

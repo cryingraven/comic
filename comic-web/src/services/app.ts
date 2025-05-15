@@ -76,4 +76,9 @@ export default class AppService {
 		)
 		return response.data.data
 	}
+
+	async unpublishComic(comicId: number) {
+		const response = await AppService._axios.delete(`/cms/comics/${comicId}`)
+		return response.data.data
+	}
 }

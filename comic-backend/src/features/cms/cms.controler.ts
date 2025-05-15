@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -129,6 +130,17 @@ export class CMSController {
   @UseGuards(FirebaseGuard)
   async getChapterPages(@Param('chapterId') chapterId: number) {
     const data = await this.cmsService.getChapterPages(chapterId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @Delete('comics/:comicId')
+  @UseGuards(FirebaseGuard)
+  async unpublishedComic(
+    @Req() userRequest: UserRequest,
+    @Param('comicId') comicId: number,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.unPublishComic(comicId, userId);
     return BasicResponseDto.success('success', data);
   }
 }

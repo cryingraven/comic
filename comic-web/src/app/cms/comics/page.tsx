@@ -13,6 +13,11 @@ import {
 	TableSortLabel,
 	Button,
 	CircularProgress,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 } from '@mui/material'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -30,6 +35,8 @@ const ManageComicPage: NextPage = () => {
 	const [order, setOrder] = useState<'asc' | 'desc'>('asc')
 	const [orderBy, setOrderBy] = useState('title')
 	const [loading, setLoading] = useState(false)
+	const [openDialog, setOpenDialog] = useState(false)
+	const [selectedComicId, setSelectedComicId] = useState<number | null>(null)
 
 	const fetchComics = async () => {
 		setLoading(true)
@@ -48,14 +55,41 @@ const ManageComicPage: NextPage = () => {
 		}
 	}
 
+	const handleUnpublish = async (comicId: number) => {
+		try {
+			await AppService.instance(store.token || '').unpublishComic(comicId)
+			fetchComics()
+		} catch (error) {
+			console.error('Error unpublishing comic:', error)
+		}
+	}
+
 	useEffect(() => {
 		fetchComics()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [orderBy, order])
+
 	const handleRequestSort = (property: string) => {
 		const isAsc = orderBy === property && order === 'asc'
 		setOrder(isAsc ? 'desc' : 'asc')
 		setOrderBy(property)
+	}
+
+	const handleOpenDialog = (comicId: number) => {
+		setSelectedComicId(comicId)
+		setOpenDialog(true)
+	}
+
+	const handleCloseDialog = () => {
+		setOpenDialog(false)
+		setSelectedComicId(null)
+	}
+
+	const handleConfirmUnpublish = () => {
+		if (selectedComicId !== null) {
+			handleUnpublish(selectedComicId)
+			handleCloseDialog()
+		}
 	}
 
 	return (
@@ -104,9 +138,10 @@ const ManageComicPage: NextPage = () => {
 									direction={orderBy === 'numberOfChapters' ? order : 'asc'}
 									onClick={() => handleRequestSort('numberOfChapters')}
 								>
-									Number of Chapters
+									Total Chapter
 								</TableSortLabel>
 							</TableCell>
+							<TableCell>Status</TableCell>
 							<TableCell>
 								<TableSortLabel
 									active={orderBy === 'publishedAt'}
@@ -148,6 +183,15 @@ const ManageComicPage: NextPage = () => {
 										</div>
 									</TableCell>
 									<TableCell>{comic.total_chapters}</TableCell>
+									<TableCell
+										className={
+											comic.status.toLowerCase() === 'unpublished'
+												? 'text-red-500'
+												: 'text-green-500'
+										}
+									>
+										{comic.status.toLocaleUpperCase()}
+									</TableCell>
 									<TableCell>
 										{moment(comic.created_at).format('LLL')}
 									</TableCell>
@@ -180,6 +224,7 @@ const ManageComicPage: NextPage = () => {
 												color="error"
 												size="small"
 												className="rounded-full"
+												onClick={() => handleOpenDialog(comic.comic_id)}
 											>
 												Unpublish
 											</Button>
@@ -190,6 +235,22 @@ const ManageComicPage: NextPage = () => {
 					</TableBody>
 				</Table>
 			</TableContainer>
+			<Dialog open={openDialog} onClose={handleCloseDialog}>
+				<DialogTitle>Confirm Unpublish</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						Are you sure you want to unpublish this comic?
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCloseDialog} color="primary">
+						Cancel
+					</Button>
+					<Button onClick={handleConfirmUnpublish} color="error">
+						Unpublish
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</div>
 	)
 }
