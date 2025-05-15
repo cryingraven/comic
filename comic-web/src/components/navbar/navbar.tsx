@@ -75,7 +75,7 @@ const Navbar = () => {
 				</div>
 			)}
 			{isSearchOpen && (
-				<div className="md:block mt-4 hidden">
+				<div className="md:block mt-4 hidden container mx-auto">
 					<NavbarSearch />
 				</div>
 			)}

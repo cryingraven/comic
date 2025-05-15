@@ -30,6 +30,7 @@ export class ReaderController {
     @Query('skip') skip: number,
     @Query('limit') limit: number,
     @Query('order_by') sort: string,
+    @Query('search') search: string,
   ): Promise<ArrayResponseDto> {
     const data = await this.readerService.findComics(
       genre,
@@ -37,6 +38,7 @@ export class ReaderController {
       skip,
       limit,
       sort,
+      search,
     );
     return ArrayResponseDto.success('Comics fetched successfully', data);
   }

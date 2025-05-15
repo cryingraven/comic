@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/navigation'
 
 interface SearchForm {
 	query: string
@@ -6,9 +7,10 @@ interface SearchForm {
 
 const NavbarSearch = () => {
 	const { register, handleSubmit } = useForm<SearchForm>()
+	const router = useRouter()
 
 	const onSearch = (data: SearchForm) => {
-		console.log(data.query)
+		router.push(`/search?q=${encodeURIComponent(data.query)}`)
 	}
 
 	return (

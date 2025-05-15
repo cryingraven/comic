@@ -31,6 +31,7 @@ export class ReaderService {
     skip: number = 0,
     limit: number = 10,
     sort: string | null = 'created_at::desc',
+    search: string | null | undefined = null,
   ) {
     const parsedSort = sort.split('::');
     const filter = {};
@@ -50,6 +51,12 @@ export class ReaderService {
 
     if (authorId) {
       filter['user_id'] = authorId;
+    }
+
+    if (search) {
+      filter['title'] = {
+        [Op.like]: `%${search}%`,
+      };
     }
 
     return this.comic.findAll({
