@@ -46,10 +46,10 @@ const GenrePage = () => {
 		const skip = pageIndex * 12
 		const limit = 12
 
-		return `/r/comics?genre=${selectedGenre?.name}&skip=${skip}&limit=${limit}`
+		return `/r/comics?genre=${selectedGenre?.name}&skip=${skip}&limit=${limit}&order_by=${sortOrder}`
 	}
 
-	const { data, size, setSize } = useSWRInfinite(getKey, fetcher)
+	const { data, size, setSize, mutate } = useSWRInfinite(getKey, fetcher)
 
 	const comics = data ? [].concat(...data) : []
 
@@ -58,6 +58,7 @@ const GenrePage = () => {
 
 		if (newValue < 8) {
 			setSelectedGenre(genres[newValue])
+			mutate()
 		}
 	}
 
@@ -100,7 +101,10 @@ const GenrePage = () => {
 						labelId="sort-label"
 						id="sort-select"
 						value={sortOrder}
-						onChange={(event) => setSortOrder(event.target.value as string)}
+						onChange={(sort) => {
+							setSortOrder(sort.target.value as string)
+							mutate() // Trigger a re-fetch with the new sort order
+						}}
 						label="Sort"
 					>
 						<MenuItem value="created_at::asc">Oldest</MenuItem>
@@ -121,6 +125,7 @@ const GenrePage = () => {
 							setSelectedGenre(genre)
 							setValue(8)
 							handleMenuClose()
+							mutate()
 						}}
 					>
 						{genre.name}
