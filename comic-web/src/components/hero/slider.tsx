@@ -21,7 +21,7 @@ const CarouselComponent = ({ banners }: CarouselComponentProps) => {
 							width={1280}
 							height={460}
 							src={getImageUrl(banner.image)}
-							alt={`Slide ${index}`}
+							alt={`Slide ${banner.image}`}
 						/>
 					</div>
 				))}

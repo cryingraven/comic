@@ -81,4 +81,60 @@ export default class AppService {
 		const response = await AppService._axios.delete(`/cms/comics/${comicId}`)
 		return response.data.data
 	}
+
+	async getAuthorProfile() {
+		const response = await AppService._axios.get('/users/me')
+		return response.data.data
+	}
+
+	async getWalletTxs(
+		startDate: Date,
+		endDate: Date,
+		skip: number,
+		limit: number
+	) {
+		const response = await AppService._axios.get('/cms/author/wallet/txs', {
+			params: {
+				start_date: startDate.toISOString(),
+				end_date: endDate.toISOString(),
+				skip,
+				limit,
+			},
+		})
+		return response.data.data
+	}
+
+	async isLikedChapter(chapterId: number) {
+		const response = await AppService._axios.get(`/r/favorites/${chapterId}`)
+		return response.data.data
+	}
+
+	async toggleLikeChapter(chapterId: number) {
+		const response = await AppService._axios.post(`/r/favorites/${chapterId}`)
+		return response.data.data
+	}
+
+	async getComments(chapterId: number, skip: number, limit: number) {
+		const response = await AppService._axios.get(
+			`/r/comments/${chapterId}?skip=${skip}&limit=${limit}`
+		)
+		return response.data.data
+	}
+
+	async addComment(chapterId: number, content: string) {
+		const response = await AppService._axios.post(`/r/comments/${chapterId}`, {
+			comment: content,
+		})
+		return response.data.data
+	}
+
+	async deleteComment(commentId: number) {
+		const response = await AppService._axios.delete(`/r/comments/${commentId}`)
+		return response.data.data
+	}
+
+  async getAuthorStats() {
+    const response = await AppService._axios.get('/cms/author/stats')
+    return response.data.data
+  }
 }

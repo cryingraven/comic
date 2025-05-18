@@ -4,11 +4,15 @@ import { generateKeyPairSync } from 'crypto';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { EditComicDTO, SaveChapterDTO, SaveComicDTO } from 'src/dto/cms.dto';
+import Bank from 'src/models/bank.model';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
 import { Genre } from 'src/models/genre.model';
 import { Page } from 'src/models/page.model';
+import { ReadHistory } from 'src/models/readhistory.model';
+import { InternalTransaction } from 'src/models/transaction.model';
 import { User } from 'src/models/user.model';
+import UserBankAccount from 'src/models/userbankaccount.model';
 
 @Injectable()
 export default class CMSService {
@@ -23,6 +27,14 @@ export default class CMSService {
     private genreModel: typeof Genre,
     @InjectModel(Page)
     private pageModel: typeof Page,
+    @InjectModel(InternalTransaction)
+    private transactionModel: typeof InternalTransaction,
+    @InjectModel(Bank)
+    private bankModel: typeof Bank,
+    @InjectModel(UserBankAccount)
+    private userBankAccountModel: typeof UserBankAccount,
+    @InjectModel(ReadHistory)
+    private readHistoryModel: typeof ReadHistory,
     private sequelize: Sequelize,
   ) {}
 
@@ -119,6 +131,7 @@ export default class CMSService {
     newComic.image = comic.image;
     newComic.banner = comic.banner;
     newComic.user_id = profileAuthor.user_id;
+    newComic.status = 'on-going';
 
     const savedComic = await newComic.save();
 
@@ -360,5 +373,145 @@ export default class CMSService {
     unpublishedComic.status = 'unpublished';
     await unpublishedComic.save();
     return unpublishedComic;
+  }
+
+  async getAuthorWalletBalanceTransaction(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+    skip: number = 0,
+    limit: number = 10,
+  ) {
+    const transactions = await this.transactionModel.findAll({
+      include: [
+        {
+          model: Comic,
+          as: 'comic',
+        },
+        {
+          model: User,
+          as: 'user',
+          where: {
+            firebase_uid: userId,
+          },
+        },
+      ],
+      where: {
+        created_at: {
+          [Op.between]: [startDate, endDate],
+        },
+        type: {
+          [Op.in]: ['sell-comic', 'donation', 'withdraw'],
+        },
+      },
+      offset: skip,
+      limit: limit,
+      order: [['created_at', 'DESC']],
+    });
+
+    return transactions;
+  }
+
+  async getAllBanks() {
+    const banks = await this.bankModel.findAll();
+    return banks;
+  }
+
+  async getNumberOfComicsByAuthor(userId: number) {
+    const numberOfComics = await this.comicModel.count({
+      where: {
+        user_id: userId,
+      },
+    });
+    return numberOfComics;
+  }
+
+  async getLast30DaysTotalRevenueByAuthor(userId: number) {
+    const totalRevenue = await this.transactionModel.sum('amount', {
+      where: {
+        created_at: {
+          [Op.between]: [
+            new Date(new Date().setDate(new Date().getDate() - 30)),
+            new Date(),
+          ],
+        },
+        user_id: userId,
+        type: {
+          [Op.in]: ['sell-comic'],
+        },
+      },
+    });
+
+    return totalRevenue;
+  }
+
+  async getLast30DaysDonationByAuthor(userId: number) {
+    const totalDonation = await this.transactionModel.sum('amount', {
+      where: {
+        created_at: {
+          [Op.between]: [
+            new Date(new Date().setDate(new Date().getDate() - 30)),
+            new Date(),
+          ],
+        },
+        user_id: userId,
+        type: {
+          [Op.in]: ['donation'],
+        },
+      },
+    });
+
+    return totalDonation;
+  }
+
+  async getTotalViews30DysByAuthor(userId: number) {
+    const totalViews = await this.readHistoryModel.count({
+      include: [
+        {
+          model: Comic,
+          as: 'comic',
+          where: {
+            user_id: userId,
+          },
+        },
+      ],
+      where: {
+        created_at: {
+          [Op.between]: [
+            new Date(new Date().setDate(new Date().getDate() - 30)),
+            new Date(),
+          ],
+        },
+      },
+    });
+    return totalViews;
+  }
+
+  async getDashboardStatsCountByFirebaseUid(userId: string) {
+    const user = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const numberOfComics = await this.getNumberOfComicsByAuthor(user.user_id);
+    const totalRevenue = await this.getLast30DaysTotalRevenueByAuthor(
+      user.user_id,
+    );
+    const totalDonation = await this.getLast30DaysDonationByAuthor(
+      user.user_id,
+    );
+    const totalViews = await this.getTotalViews30DysByAuthor(user.user_id);
+
+    return {
+      num_of_comics: numberOfComics,
+      total_revenue: totalRevenue,
+      total_donation: totalDonation,
+      total_views: totalViews,
+    };
   }
 }

@@ -7,6 +7,8 @@ import moment from 'moment'
 import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export default function DetailBlogPlage() {
 	const { news_id } = useParams()
@@ -49,8 +51,8 @@ export default function DetailBlogPlage() {
 							className="w-1/2 mx-auto h-auto rounded-lg shadow-md"
 						/>
 					</div>
-					<p className="text-gray-700 mb-4">{blog.content}</p>
-					<div className="text-sm text-gray-500">
+					<Markdown remarkPlugins={[remarkGfm]}>{blog.content}</Markdown>
+					<div className="text-sm text-gray-500 mt-4">
 						<p>
 							Published on:{' '}
 							{moment(blog.created_at).format('DDD, DD MMMM YYYY HH:mm')}

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -16,6 +17,7 @@ import { FirebaseGuard } from 'src/modules/firebase/firebase.guard';
 import { UserRequest } from 'src/types/user.type';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ReadHistoryDto } from 'src/dto/readhistory.dto';
+import { AddCommentDto } from 'src/dto/comment.dto';
 
 @Controller('r')
 export class ReaderController {
@@ -212,5 +214,80 @@ export class ReaderController {
       body.chapter_id,
     );
     return BasicResponseDto.success('Read history added successfully', data);
+  }
+
+  @CacheTTL(2)
+  @Get('favorites/:chapterId')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
+  async favorites(
+    @Req() req: UserRequest,
+    @Param('chapterId') chapterId: number,
+  ): Promise<ArrayResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.getFavoriteStatus(
+      firebaseUid,
+      chapterId,
+    );
+    return BasicResponseDto.success('Favorites fetched successfully', data);
+  }
+
+  @Post('favorites/:chapterId')
+  @UseGuards(FirebaseGuard)
+  async toggleFavorite(
+    @Req() req: UserRequest,
+    @Param('chapterId') chapterId: number,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.toggleFavorite(
+      firebaseUid,
+      chapterId,
+    );
+    return BasicResponseDto.success('Favorites added successfully', data);
+  }
+
+  @CacheTTL(3)
+  @Get('comments/:chapterId')
+  @UseInterceptors(CacheInterceptor)
+  async comments(
+    @Param('chapterId') chapterId: number,
+    @Query('skip') skip: string,
+    @Query('limit') limit: string,
+  ): Promise<ArrayResponseDto> {
+    const internalSkip = parseInt(skip, 10) || 0;
+    const internalLimit = parseInt(limit, 10) || 10;
+    const data = await this.readerService.getChapterComments(
+      chapterId,
+      internalSkip,
+      internalLimit,
+    );
+    return ArrayResponseDto.success('Comments fetched successfully', data);
+  }
+
+  @Post('comments/:chapterId')
+  @UseGuards(FirebaseGuard)
+  async addComment(
+    @Param('chapterId') chapterId: number,
+    @Body() body: AddCommentDto,
+    @Req() req: UserRequest,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.addChapterComment(
+      firebaseUid,
+      chapterId,
+      body.comment,
+    );
+    return BasicResponseDto.success('Comment added successfully', data);
+  }
+
+  @Delete('comments/:commentId')
+  @UseGuards(FirebaseGuard)
+  async deleteComment(
+    @Param('commentId') commentId: number,
+    @Req() req: UserRequest,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.deleteComment(firebaseUid, commentId);
+    return BasicResponseDto.success('Comment deleted successfully', data);
   }
 }

@@ -1,11 +1,11 @@
 import React from 'react'
 import { Container, Typography, IconButton, Link } from '@mui/material'
 import {
-	Facebook,
-	Twitter,
+	// Facebook,
+	// Twitter,
 	Instagram,
-	Apple,
-	Google,
+	// Apple,
+	// Google,
 } from '@mui/icons-material'
 import Image from 'next/image'
 
@@ -23,21 +23,24 @@ const Footer = () => {
 					/>
 				</div>
 				<div className="flex justify-center space-x-2">
-					<IconButton href="https://facebook.com" target="_blank">
+					{/* <IconButton href="https://facebook.com" target="_blank">
 						<Facebook />
-					</IconButton>
-					<IconButton href="https://twitter.com" target="_blank">
+					</IconButton> */}
+					{/* <IconButton href="https://twitter.com" target="_blank">
 						<Twitter />
-					</IconButton>
-					<IconButton href="https://instagram.com" target="_blank">
+					</IconButton> */}
+					<IconButton
+						href="https://www.instagram.com/24comic.official"
+						target="_blank"
+					>
 						<Instagram />
 					</IconButton>
-					<IconButton href="https://apps.apple.com" target="_blank">
+					{/* <IconButton href="https://apps.apple.com" target="_blank">
 						<Apple />
 					</IconButton>
 					<IconButton href="https://play.google.com" target="_blank">
 						<Google />
-					</IconButton>
+					</IconButton> */}
 				</div>
 				<div className="flex justify-between md:flex-row flex-col items-center">
 					<Typography variant="body2" color="textSecondary">

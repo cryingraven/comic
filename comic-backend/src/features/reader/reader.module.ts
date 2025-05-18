@@ -10,6 +10,8 @@ import { ReaderController } from './reader.controller';
 import { ReaderService } from './reader.service';
 import { FirebaseModule } from 'src/modules/firebase/firebase.module';
 import { Genre } from 'src/models/genre.model';
+import { Favorites } from 'src/models/favorites.model';
+import Comments from 'src/models/comments.model';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { Genre } from 'src/models/genre.model';
       ReadHistory,
       Access,
       Genre,
+      Favorites,
+      Comments,
     ]),
     FirebaseModule,
   ],

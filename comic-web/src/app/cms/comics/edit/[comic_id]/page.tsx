@@ -41,7 +41,7 @@ const EditComic: React.FC = () => {
 	const params = useParams()
 	const store = useStore()
 	const { control, handleSubmit, setValue } = useForm<EditComicForm>()
-	const comicTypes = ['series', 'classic']
+	const comicTypes = ['webtoon', 'classic']
 	const [image, setImage] = useState<File | null>(null)
 	const [cover, setCover] = useState<File | null>(null)
 	const [banner, setBanner] = useState<File | null>(null)

@@ -1,7 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
-import { TextField, Button, Container, Typography } from '@mui/material'
+import {
+	TextField,
+	Button,
+	Container,
+	Typography,
+	Snackbar,
+	Alert,
+} from '@mui/material'
 import UploadInput from '@/components/upload/input'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -20,6 +27,8 @@ const EditProfilePage = () => {
 	const store = useStore()
 	const { data } = useSWR<User>('/users/me')
 	const [loading, setLoading] = useState(false)
+	const [successMessage, setSuccessMessage] = useState('')
+	const [errorMessage, setErrorMessage] = useState('')
 	const { handleSubmit, register, setValue } = useForm<EditProfileForm>({
 		defaultValues: {
 			phone: data?.phone_number || '',
@@ -51,8 +60,12 @@ const EditProfilePage = () => {
 			}
 
 			await AppService.instance(store.token || '').post('/users', newProfile)
-			router.push('/profile')
+			setSuccessMessage('Profile updated successfully!')
+			setTimeout(() => {
+				router.push('/profile')
+			}, 2000)
 		} catch (e) {
+			setErrorMessage('Failed to update profile. Please try again.')
 			console.log(e)
 		} finally {
 			setLoading(false)
@@ -130,6 +143,32 @@ const EditProfilePage = () => {
 					</Button>
 				</div>
 			</form>
+			<Snackbar
+				open={!!successMessage}
+				autoHideDuration={6000}
+				onClose={() => setSuccessMessage('')}
+			>
+				<Alert
+					onClose={() => setSuccessMessage('')}
+					severity="success"
+					sx={{ width: '100%' }}
+				>
+					{successMessage}
+				</Alert>
+			</Snackbar>
+			<Snackbar
+				open={!!errorMessage}
+				autoHideDuration={6000}
+				onClose={() => setErrorMessage('')}
+			>
+				<Alert
+					onClose={() => setErrorMessage('')}
+					severity="error"
+					sx={{ width: '100%' }}
+				>
+					{errorMessage}
+				</Alert>
+			</Snackbar>
 		</Container>
 	)
 }

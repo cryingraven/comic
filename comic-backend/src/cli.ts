@@ -23,6 +23,9 @@ import { Package } from './models/package.model';
 import { InternalTransaction } from './models/transaction.model';
 import { Blog } from './models/blog.model';
 import { Banner } from './models/banner.model';
+import Comments from './models/comments.model';
+import { koomik_firebase } from './migrations/koomik-firebase';
+import { FirebaseService } from './modules/firebase/firebase.service';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -39,10 +42,12 @@ export async function cli() {
     console.log('create - create table');
     console.log('migrate_akoma - migrate akoma data');
     console.log('migrate_koomik - migrate koomik data');
+    console.log('migrate_koomik_fb - migrate koomik firebase');
     console.log('migrate_akoma_images - migrate akoma images');
     rl.question('What do you want to do? ', async (answer) => {
       const config = app.get(ConfigService);
       const storage = app.get(StorageService);
+      const firebase = app.get(FirebaseService);
 
       const databaseHost = config.get('DATABASE_HOST');
       const databasePort = config.get('DATABASE_PORT');
@@ -91,6 +96,7 @@ export async function cli() {
         );
         await queryInterface.createTable('blogs', Blog.getAttributes());
         await queryInterface.createTable('banners', Banner.getAttributes());
+        await queryInterface.createTable('comments', Comments.getAttributes());
         console.log('Table created');
       } else if (answer === 'migrate_akoma') {
         const akomaMongoUri = config.get('AKOMA_MONGO_URI');
@@ -116,6 +122,8 @@ export async function cli() {
         });
 
         await koomik(sequelize, koomikSequelize);
+      } else if (answer === 'migrate_koomik_fb') {
+        await koomik_firebase(sequelize, firebase);
       }
 
       rl.close();

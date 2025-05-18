@@ -1,3 +1,4 @@
+import { TEXT } from 'sequelize';
 import {
   AutoIncrement,
   Column,
@@ -20,7 +21,7 @@ export class Blog extends Model {
   @Column
   title: string;
 
-  @Column
+  @Column(TEXT('long'))
   content: string;
 
   @Column

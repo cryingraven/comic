@@ -8,6 +8,7 @@ import {
   Query,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import CMSService from './cms.service';
 import { FirebaseGuard } from 'src/modules/firebase/firebase.guard';
@@ -15,13 +16,17 @@ import { UserRequest } from 'src/types/user.type';
 import { ArrayResponseDto } from 'src/dto/arrayresponse.dto';
 import { BasicResponseDto } from 'src/dto/basicresponse.dto';
 import { EditComicDTO, SaveChapterDTO, SaveComicDTO } from 'src/dto/cms.dto';
+import moment from 'moment';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('cms')
 export class CMSController {
   constructor(private readonly cmsService: CMSService) {}
 
+  @CacheTTL(1)
   @Get('comics')
   @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
   async getComicsByAuthorFirebaseId(
     @Req() userRequest: UserRequest,
     @Query('skip') skip: number,
@@ -37,8 +42,10 @@ export class CMSController {
     return ArrayResponseDto.success('success', data);
   }
 
+  @CacheTTL(1) // 1 day
   @Get('comics/:comicId/chapters')
   @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
   async getChaptersByComicId(
     @Req() userRequest: UserRequest,
     @Param('comicId') comicId: number,
@@ -54,8 +61,10 @@ export class CMSController {
     return BasicResponseDto.success('success', data);
   }
 
+  @CacheTTL(60 * 60 * 24) // 1 day
   @Get('genres')
   @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
   async getAllGenresForInput() {
     const data = await this.cmsService.getAllGenresForInput();
     return ArrayResponseDto.success('success', data);
@@ -141,6 +150,56 @@ export class CMSController {
   ) {
     const userId = userRequest.user.uid || '';
     const data = await this.cmsService.unPublishComic(comicId, userId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @CacheTTL(60)
+  @Get('author/wallet/txs')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
+  async getAuthorWalletBalanceTransaction(
+    @Req() userRequest: UserRequest,
+    @Query('start_date') startDate: string,
+    @Query('end_date') endDate: string,
+    @Query('skip') skip: string,
+    @Query('limit') limit: string,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const startDateInternal =
+      startDate && startDate !== ''
+        ? new Date(startDate)
+        : moment().add(-7, 'days').toDate();
+    const endDateInternal =
+      endDate && endDate !== '' ? new Date(endDate) : moment().toDate();
+    const skipInternal = parseInt(skip) || 0;
+    const limitInternal = parseInt(limit) || 10;
+    const data = await this.cmsService.getAuthorWalletBalanceTransaction(
+      userId,
+      startDateInternal,
+      endDateInternal,
+      skipInternal,
+      limitInternal,
+    );
+    return ArrayResponseDto.success('success', data);
+  }
+
+  @CacheTTL(60)
+  @Get('author/banks')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
+  async getAllBanks() {
+    const data = await this.cmsService.getAllBanks();
+    return ArrayResponseDto.success('success', data);
+  }
+
+
+  @CacheTTL(60)
+  @Get('author/stats')
+  @UseGuards(FirebaseGuard)
+  @UseInterceptors(CacheInterceptor)
+  async getAuthorWalletBalance(@Req() userRequest: UserRequest) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.getDashboardStatsCountByFirebaseUid(userId);
     return BasicResponseDto.success('success', data);
   }
 }

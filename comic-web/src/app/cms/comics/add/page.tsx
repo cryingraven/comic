@@ -38,7 +38,7 @@ const InputComic: React.FC = () => {
 	const router = useRouter()
 	const store = useStore()
 	const { control, handleSubmit } = useForm<CreateComicForm>()
-	const comicTypes = ['series', 'classic']
+	const comicTypes = ['webtoon', 'classic']
 	const [image, setImage] = useState<File | null>(null)
 	const [cover, setCover] = useState<File | null>(null)
 	const [banner, setBanner] = useState<File | null>(null)

@@ -6,6 +6,7 @@ import DefaultBackendService from '../../services/default'
 import { Blog } from '@/models/blog'
 import { getImageUrl } from '@/utils/imageurl'
 import Link from 'next/link'
+import { clearMarkdown } from '@/utils/cleanmarkdown'
 
 const LatestBlogs = () => {
 	const [blogs, setBlogs] = useState<Blog[]>([])
@@ -35,9 +36,11 @@ const LatestBlogs = () => {
 								className="rounded-t-lg w-full"
 							/>
 
-							<h2 className="text-xl p-2 font-bold mt-2">{blog.title}</h2>
+							<h2 className="text-xl font-bold mt-2 line-clamp-2">
+								{blog.title}
+							</h2>
 							<p className="text-gray-600 p-2">
-								{blog.content.substring(0, 100)}
+								{clearMarkdown(blog.content.substring(0, 100))}
 							</p>
 						</div>
 					</Link>

@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth'
 import { firebaseAuth } from '@/providers/firebase'
 import AppService from '@/services/app'
+import { convertFirebaseAuthErrorToMessage } from '@/utils/error'
 
 type Inputs = {
 	email: string
@@ -48,8 +49,8 @@ const LoginPage = () => {
 			await AppService.instance(token).saveProfile({})
 			router.push('/')
 		} catch (error) {
-			console.log(error)
-			setError('Failed to login. Incorrect email or password.')
+			const errorMessage = convertFirebaseAuthErrorToMessage(error)
+			setError(errorMessage)
 		}
 		setLoading(false)
 	}
@@ -66,8 +67,8 @@ const LoginPage = () => {
 			await AppService.instance(token).saveProfile({})
 			router.push('/')
 		} catch (error) {
-			console.log(error)
-			setError('Failed to login with Google.')
+			const errorMessage = convertFirebaseAuthErrorToMessage(error)
+			setError(errorMessage)
 		}
 	}
 

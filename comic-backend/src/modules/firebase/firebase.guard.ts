@@ -1,10 +1,9 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { FirebaseService } from 'src/modules/firebase/firebase.service';
-import jwt from 'jsonwebtoken';
+import { decode } from 'jsonwebtoken';
 
 @Injectable()
 export class FirebaseGuard implements CanActivate {
-  constructor(private readonly firebaseService: FirebaseService) {}
+  constructor() {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
@@ -15,13 +14,14 @@ export class FirebaseGuard implements CanActivate {
     if (!token) return false;
 
     try {
-      const user = await this.firebaseService.validateToken(token);
-
-      console.log(user);
+      const user = decode(token, { complete: true }) as any;
 
       if (!user) return false;
 
-      request['user'] = user;
+      request['user'] = {
+        ...user,
+        uid: user.payload.user_id,
+      };
 
       return true;
     } catch (err) {

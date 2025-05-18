@@ -4,6 +4,8 @@ import { Op } from 'sequelize';
 import { Access } from 'src/models/access.model';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
+import Comments from 'src/models/comments.model';
+import { Favorites } from 'src/models/favorites.model';
 import { Genre } from 'src/models/genre.model';
 import { Page } from 'src/models/page.model';
 import { ReadHistory } from 'src/models/readhistory.model';
@@ -19,6 +21,8 @@ export class ReaderService {
     @InjectModel(Access) private access: typeof Access,
     @InjectModel(Genre) private genre: typeof Genre,
     @InjectModel(ReadHistory) private readHistory: typeof ReadHistory,
+    @InjectModel(Favorites) private favorites: typeof Favorites,
+    @InjectModel(Comments) private comments: typeof Comments,
   ) {}
 
   getAll() {
@@ -287,5 +291,161 @@ export class ReaderService {
         created_at: new Date(),
       });
     }
+  }
+
+  async getFavoriteStatus(firebaseUid: string, chapterId: number) {
+    const favorites = await this.favorites.findOne({
+      include: [
+        {
+          model: User,
+          as: 'user',
+          where: {
+            firebase_uid: firebaseUid,
+          },
+        },
+      ],
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    return favorites ? true : false;
+  }
+
+  async toggleFavorite(firebaseUid: string, chapterId: number) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const chapter = await this.chapter.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!chapter) {
+      return null;
+    }
+
+    const userId = user.user_id;
+    const favorites = await this.favorites.findOne({
+      where: {
+        user_id: userId,
+        chapter_id: chapterId,
+      },
+    });
+
+    if (favorites) {
+      await favorites.destroy();
+      chapter.likes -= 1;
+      await chapter.save();
+      return false;
+    } else {
+      await this.favorites.create({
+        user_id: userId,
+        chapter_id: chapterId,
+      });
+
+      chapter.likes += 1;
+      await chapter.save();
+
+      return true;
+    }
+  }
+
+  async getChapterComments(chapterId: number, skip: number, limit: number) {
+    return await this.comments.findAll({
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+      ],
+      where: {
+        chapter_id: chapterId,
+      },
+      order: [['created_at', 'DESC']],
+      offset: skip,
+      limit: limit,
+    });
+  }
+
+  async addChapterComment(
+    firebaseUid: string,
+    chapterId: number,
+    content: string,
+  ) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const chapter = await this.chapter.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!chapter) {
+      return null;
+    }
+
+    const userId = user.user_id;
+
+    const comment = await this.comments.create({
+      user_id: userId,
+      chapter_id: chapterId,
+      content: content,
+      created_at: new Date(),
+    });
+
+    chapter.comments += 1;
+    await chapter.save();
+
+    return comment;
+  }
+
+  async deleteComment(firebaseUid: string, commentId: number) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    const comment = await this.comments.findOne({
+      where: {
+        comment_id: commentId,
+      },
+    });
+
+    if (!comment) {
+      return null;
+    }
+
+    if(comment.user_id !== user.user_id){
+      return null;
+    }
+    
+    const chapter = await this.chapter.findOne({
+      where: {
+        chapter_id: comment.chapter_id,
+      },
+    });
+    chapter.comments -= 1;
+    await chapter.save();
+
+    await comment.destroy();
+    return comment;
   }
 }

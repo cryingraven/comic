@@ -1,7 +1,14 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { AppBar, Toolbar, Typography, Card, Button } from '@mui/material'
+import {
+	AppBar,
+	Toolbar,
+	Typography,
+	Card,
+	Button,
+	Drawer,
+} from '@mui/material'
 import 'tailwindcss/tailwind.css'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -12,6 +19,7 @@ import {
 	Favorite,
 	ChevronRight,
 	List,
+	FavoriteBorder,
 } from '@mui/icons-material'
 import useSWR from 'swr'
 import { Chapter, ChapterNavigation } from '@/models/chapter'
@@ -23,6 +31,7 @@ import { formatNumber } from '@/utils/format'
 import PurchaseModal from '@/components/modals/purchase'
 import useStore from '@/store'
 import AppService from '@/services/app'
+import CommentsDrawer from '@/components/drawers/comments'
 import clsx from 'clsx'
 
 const ComicReadingPage = () => {
@@ -34,6 +43,8 @@ const ComicReadingPage = () => {
 	const [showPurchaseModal, setShowPurchaseModal] = useState(true)
 	const [pages, setPages] = useState<Page[]>([])
 	const [currentPageIndex, setCurrentPageIndex] = useState(0)
+	const [showCommentsDrawer, setShowCommentsDrawer] = useState(false)
+	const [isLiked, setIsLiked] = useState(false)
 
 	const { data: comic, isLoading: comicLoading } = useSWR<Comic>(
 		`/r/comics/${comicId}`
@@ -103,9 +114,36 @@ const ComicReadingPage = () => {
 		}
 	}
 
+	const toggleLike = async () => {
+		if (chapter && store.user && store.token) {
+			try {
+				await AppService.instance(store.token || '').toggleLikeChapter(
+					chapterId ? parseInt(chapterId as string) : 0
+				)
+				setIsLiked(!isLiked)
+			} catch (err) {
+				console.log(err)
+			}
+		}
+	}
+
+	const fetchLikeStatus = async () => {
+		if (chapter && store.user && store.token) {
+			try {
+				const liked = await AppService.instance(
+					store.token || ''
+				).isLikedChapter(chapterId ? parseInt(chapterId as string) : 0)
+				setIsLiked(liked)
+			} catch (err) {
+				console.log(err)
+			}
+		}
+	}
+
 	useEffect(() => {
 		fetchPages()
 		addReadHistory()
+		fetchLikeStatus()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [chapter])
 
@@ -212,11 +250,16 @@ const ComicReadingPage = () => {
 									<ChevronRight />
 								</Button>
 							)}
-							<Button className="p-1 md:p-2" size="small">
-								<Comment /> {formatNumber(comic?.comments || 0)}
+							<Button className="p-1 md:p-2" size="small" onClick={toggleLike}>
+								{isLiked ? <Favorite /> : <FavoriteBorder />}{' '}
+								{formatNumber(comic?.likes || 0)}
 							</Button>
-							<Button className="p-1 md:p-2" size="small">
-								<Favorite /> {formatNumber(comic?.likes || 0)}
+							<Button
+								className="p-1 md:p-2"
+								size="small"
+								onClick={() => setShowCommentsDrawer(true)}
+							>
+								<Comment /> {formatNumber(comic?.comments || 0)}
 							</Button>
 						</div>
 					</Toolbar>
@@ -299,6 +342,16 @@ const ComicReadingPage = () => {
 					chapter={chapter}
 				/>
 			)}
+			<Drawer
+				anchor="right"
+				open={showCommentsDrawer}
+				onClose={() => setShowCommentsDrawer(false)}
+			>
+				<CommentsDrawer
+					chapterId={chapterId as string}
+					onClose={() => setShowCommentsDrawer(false)}
+				/>
+			</Drawer>
 		</div>
 	)
 }
