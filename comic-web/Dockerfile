@@ -30,7 +30,7 @@ COPY --from=builder /app/. .
 RUN npm install --legacy-peer-deps
 
 # Expose the port that Next.js will run on
-EXPOSE 3000
+EXPOSE 3001
 
 # Start the Next.js application
 CMD ["npm", "start"]
