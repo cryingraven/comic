@@ -2,11 +2,24 @@ version: '3.8'
 
 services:
   app:
-    build: .
-    working_dir: /app
-    volumes:
-      - .:/app
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '8080:8080'
     env_file:
       - .env
+    depends_on:
+      - redis
+    restart: always
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379
+    volumes:
+      - redis_data:/data # Persist data
+    command: redis-server --requirepass comic24 --bind 0.0.0.0 --port 6379
+    restart: unless-stopped
+volumes:
+  redis_data:
