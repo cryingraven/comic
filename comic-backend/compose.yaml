@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  app:
+  app-dev:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '8080:8080'
+      - '8081:8081'
     env_file:
       - .env
     depends_on:
       - redis
     restart: always
-  redis:
+  redis-dev:
     image: redis:latest
     container_name: redis
     ports:
