@@ -1,10 +1,11 @@
-'use client '
+'use client'
+
 import TopUpForm from '@/components/form/topup'
 import DefaultBackendService from '@/services/default'
 import { Typography } from '@mui/material'
-
 import { useState, useEffect } from 'react'
-const TopUpPage = () => {
+
+export default function TopUpPage() {
 	const [methods, setMethods] = useState([])
 	const [packages, setPackages] = useState([])
 
@@ -30,5 +31,3 @@ const TopUpPage = () => {
 		</div>
 	)
 }
-
-export default TopUpPage
