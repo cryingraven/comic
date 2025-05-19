@@ -266,16 +266,12 @@ export class ReaderService {
       return null;
     }
 
-    comic.views += 1;
-    await comic.save();
-
-    chapter.views += 1;
-    await chapter.save();
-
     const userId = user.user_id;
     const readHistory = await this.readHistory.findOne({
       where: {
         user_id: userId,
+        comic_id: comicId,
+        chapter_id: chapterId,
       },
       limit: 1,
       order: [['created_at', 'DESC']],
@@ -284,6 +280,12 @@ export class ReaderService {
     if (readHistory) {
       return readHistory;
     } else {
+      comic.views += 1;
+      await comic.save();
+
+      chapter.views += 1;
+      await chapter.save();
+
       return await this.readHistory.create({
         user_id: userId,
         comic_id: comicId,
@@ -433,10 +435,10 @@ export class ReaderService {
       return null;
     }
 
-    if(comment.user_id !== user.user_id){
+    if (comment.user_id !== user.user_id) {
       return null;
     }
-    
+
     const chapter = await this.chapter.findOne({
       where: {
         chapter_id: comment.chapter_id,
