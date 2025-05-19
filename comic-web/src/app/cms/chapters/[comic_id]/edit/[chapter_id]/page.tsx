@@ -18,7 +18,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { ChapterPrice, chapterPrices } from '@/data/price'
+import { chapterPrices } from '@/data/price'
 import { useParams, useRouter } from 'next/navigation'
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
@@ -33,7 +33,7 @@ import { getImageUrl } from '@/utils/imageurl'
 interface ChapterFormData {
 	title: string
 	subtitle: string
-	price: ChapterPrice
+	price: number
 	images: Page[]
 	publishedAt: Date | null
 }
@@ -50,10 +50,7 @@ const ChapterEditPage = () => {
 		defaultValues: {
 			title: '',
 			subtitle: '',
-			price: {
-				fiatPrice: 0,
-				coinPrice: 0,
-			},
+			price: 0,
 			images: [],
 			publishedAt: null,
 		},
@@ -78,12 +75,7 @@ const ChapterEditPage = () => {
 			reset({
 				title: chapter.title,
 				subtitle: chapter.subtitle,
-				price: chapterPrices.find(
-					(price) => price.coinPrice === chapter.price
-				) || {
-					fiatPrice: 0,
-					coinPrice: 0,
-				},
+				price: chapter.price || 0,
 				images: [],
 				publishedAt: chapter.published_at
 					? new Date(chapter.published_at)
@@ -168,11 +160,13 @@ const ChapterEditPage = () => {
 				pages.push(filename)
 			}
 
+			const price = chapterPrices.find((p) => p.coinPrice === data.price)
+
 			const updatedChapter = {
 				title: data.title,
 				subtitle: data.subtitle,
-				price: data.price.coinPrice || 0,
-				fiat_price: data.price.fiatPrice || 0,
+				price: price?.coinPrice || 0,
+				fiat_price: price?.fiatPrice || 0,
 				pages: pages.length > 0 ? pages : oldImages,
 				published_at: data.publishedAt,
 				image: imageUrl ? imageUrl : chapter ? chapter.image : null,
