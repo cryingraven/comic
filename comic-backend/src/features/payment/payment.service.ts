@@ -441,169 +441,175 @@ export class PaymentService {
     // }
 
     try {
-      const result = await this.sequelize.transaction(async (t) => {
-        const payment = await this.paymentModel.findOne({
-          where: {
-            payment_id: parseInt(orderId),
-          },
-        });
+      const paymentId = parseInt(orderId);
 
-        if (!payment) {
-          throw new Error('Payment not found');
-        }
+      if (!isNaN(paymentId)) {
+        const result = await this.sequelize.transaction(async (t) => {
+          const payment = await this.paymentModel.findOne({
+            where: {
+              payment_id: paymentId,
+            },
+          });
 
-        payment.status = statusCode === '200' ? 'success' : 'failed';
-
-        await payment.save({
-          transaction: t,
-        });
-
-        if (statusCode === '200') {
-          if (payment.type === 'top-up') {
-            const user = await this.userModel.findOne({
-              where: {
-                user_id: payment.user_id,
-              },
-            });
-
-            if (!user) {
-              throw new Error('User not found');
-            }
-
-            user.balance += payment.amount_to_add;
-
-            await user.save({
-              transaction: t,
-            });
-
-            return user;
+          if (!payment) {
+            throw new Error('Payment not found');
           }
 
-          if (payment.type === 'purchase') {
-            const extra = JSON.parse(payment.extra);
+          payment.status = statusCode === '200' ? 'success' : 'failed';
 
-            const chapter = await this.chapterModel.findOne({
-              where: {
-                chapter_id: extra.chapter_id,
-                comic_id: extra.comic_id,
-              },
-              include: [
-                {
-                  model: this.comicModel,
+          await payment.save({
+            transaction: t,
+          });
+
+          if (statusCode === '200') {
+            if (payment.type === 'top-up') {
+              const user = await this.userModel.findOne({
+                where: {
+                  user_id: payment.user_id,
                 },
-              ],
-            });
+              });
 
-            if (!chapter) {
-              throw new Error('Chapter not found');
+              if (!user) {
+                throw new Error('User not found');
+              }
+
+              user.balance += payment.amount_to_add;
+
+              await user.save({
+                transaction: t,
+              });
+
+              return user;
             }
 
-            const author = await this.userModel.findOne({
-              where: {
-                user_id: chapter.comic.user_id,
-              },
-            });
+            if (payment.type === 'purchase') {
+              const extra = JSON.parse(payment.extra);
 
-            if (!author) {
-              throw new Error('Author not found');
+              const chapter = await this.chapterModel.findOne({
+                where: {
+                  chapter_id: extra.chapter_id,
+                  comic_id: extra.comic_id,
+                },
+                include: [
+                  {
+                    model: this.comicModel,
+                  },
+                ],
+              });
+
+              if (!chapter) {
+                throw new Error('Chapter not found');
+              }
+
+              const author = await this.userModel.findOne({
+                where: {
+                  user_id: chapter.comic.user_id,
+                },
+              });
+
+              if (!author) {
+                throw new Error('Author not found');
+              }
+
+              author.wallet_balance += chapter.fiat_price;
+
+              await author.save({
+                transaction: t,
+              });
+
+              const userId = payment.user_id;
+
+              await this.transactionModel.create(
+                {
+                  user_id: userId,
+                  comic_id: chapter.comic_id,
+                  chapter_id: chapter.chapter_id,
+                  amount: chapter.fiat_price,
+                  type: 'buy-comic',
+                  status: 'success',
+                },
+                {
+                  transaction: t,
+                },
+              );
+
+              await this.transactionModel.create(
+                {
+                  user_id: author.user_id,
+                  comic_id: chapter.comic_id,
+                  chapter_id: chapter.chapter_id,
+                  amount: chapter.fiat_price,
+                  type: 'sell-comic',
+                  status: 'success',
+                },
+                {
+                  transaction: t,
+                },
+              );
+
+              const access = await this.accessModel.create(
+                {
+                  user_id: userId,
+                  chapter_id: chapter.chapter_id,
+                  comic_id: chapter.comic_id,
+                  expired_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                },
+                {
+                  transaction: t,
+                },
+              );
+
+              return access;
             }
 
-            author.wallet_balance += chapter.fiat_price;
+            if (payment.type === 'donation') {
+              const extra = JSON.parse(payment.extra);
 
-            await author.save({
-              transaction: t,
-            });
+              const author = await this.userModel.findOne({
+                where: {
+                  user_id: extra.author_id,
+                },
+              });
 
-            const userId = payment.user_id;
+              author.wallet_balance += payment.amount_to_add;
 
-            await this.transactionModel.create(
-              {
-                user_id: userId,
-                comic_id: chapter.comic_id,
-                chapter_id: chapter.chapter_id,
-                amount: chapter.fiat_price,
-                type: 'buy-comic',
-                status: 'success',
-              },
-              {
+              await author.save({
                 transaction: t,
-              },
-            );
+              });
 
-            await this.transactionModel.create(
-              {
-                user_id: author.user_id,
-                comic_id: chapter.comic_id,
-                chapter_id: chapter.chapter_id,
-                amount: chapter.fiat_price,
-                type: 'sell-comic',
-                status: 'success',
-              },
-              {
-                transaction: t,
-              },
-            );
+              await this.transactionModel.create(
+                {
+                  user_id: payment.user_id,
+                  amount: payment.amount_to_add,
+                  type: 'give-donation',
+                  status: 'success',
+                },
+                {
+                  transaction: t,
+                },
+              );
 
-            const access = await this.accessModel.create(
-              {
-                user_id: userId,
-                chapter_id: chapter.chapter_id,
-                comic_id: chapter.comic_id,
-                expired_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-              },
-              {
-                transaction: t,
-              },
-            );
+              await this.transactionModel.create(
+                {
+                  user_id: author.user_id,
+                  amount: payment.amount_to_add,
+                  type: 'receive-donation',
+                  status: 'success',
+                },
+                {
+                  transaction: t,
+                },
+              );
+            }
 
-            return access;
+            return payment;
           }
+        });
 
-          if (payment.type === 'donation') {
-            const extra = JSON.parse(payment.extra);
+        return result;
+      }
 
-            const author = await this.userModel.findOne({
-              where: {
-                user_id: extra.author_id,
-              },
-            });
-
-            author.wallet_balance += payment.amount_to_add;
-
-            await author.save({
-              transaction: t,
-            });
-
-            await this.transactionModel.create(
-              {
-                user_id: payment.user_id,
-                amount: payment.amount_to_add,
-                type: 'give-donation',
-                status: 'success',
-              },
-              {
-                transaction: t,
-              },
-            );
-
-            await this.transactionModel.create(
-              {
-                user_id: author.user_id,
-                amount: payment.amount_to_add,
-                type: 'receive-donation',
-                status: 'success',
-              },
-              {
-                transaction: t,
-              },
-            );
-          }
-
-          return payment;
-        }
-      });
-
-      return result;
+      return null;
     } catch (error) {
       throw new Error(error.message);
     }
