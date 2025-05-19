@@ -81,24 +81,26 @@ const CommentsDrawer: React.FC<CommentsDrawerProps> = ({
 					</ListItem>
 				))}
 			</List>
-			<div className="p-4 fixed bottom-0 md:w-80 w-full bg-white">
-				<TextField
-					fullWidth
-					label="Add a comment"
-					value={newComment}
-					onChange={(e) => setNewComment(e.target.value)}
-					margin="normal"
-				/>
-				<Button
-					variant="contained"
-					color="warning"
-					className="rounded-full"
-					fullWidth
-					onClick={handleAddComment}
-				>
-					Submit
-				</Button>
-			</div>
+			{store.token && (
+				<div className="p-4 fixed bottom-0 md:w-80 w-full bg-white">
+					<TextField
+						fullWidth
+						label="Add a comment"
+						value={newComment}
+						onChange={(e) => setNewComment(e.target.value)}
+						margin="normal"
+					/>
+					<Button
+						variant="contained"
+						color="warning"
+						className="rounded-full"
+						fullWidth
+						onClick={handleAddComment}
+					>
+						Submit
+					</Button>
+				</div>
+			)}
 		</div>
 	)
 }
