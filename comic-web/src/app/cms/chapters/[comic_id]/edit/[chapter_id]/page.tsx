@@ -67,45 +67,46 @@ const ChapterEditPage = () => {
 	const [showOldImagesModal, setShowOldImagesModal] = useState(false)
 	const store = useStore()
 
-	useEffect(() => {
-		const fetchChapter = async () => {
-			setIsLoading(true)
-			try {
-				const chapter = (await AppService.instance(store.token || '').get(
-					`/cms/chapters/${chapter_id}`
-				)) as Chapter
+	const fetchChapter = async () => {
+		setIsLoading(true)
+		try {
+			const chapter = (await AppService.instance(store.token || '').get(
+				`/cms/chapters/${chapter_id}`
+			)) as Chapter
 
-				setChapter(chapter)
-				reset({
-					title: chapter.title,
-					subtitle: chapter.subtitle,
-					price: chapterPrices.find(
-						(price) => price.coinPrice === chapter.price
-					) || {
-						fiatPrice: 0,
-						coinPrice: 0,
-					},
-					images: [],
-					publishedAt: chapter.published_at
-						? new Date(chapter.published_at)
-						: null,
-				})
-				setThumb(null)
-				setImages([])
+			setChapter(chapter)
+			reset({
+				title: chapter.title,
+				subtitle: chapter.subtitle,
+				price: chapterPrices.find(
+					(price) => price.coinPrice === chapter.price
+				) || {
+					fiatPrice: 0,
+					coinPrice: 0,
+				},
+				images: [],
+				publishedAt: chapter.published_at
+					? new Date(chapter.published_at)
+					: null,
+			})
+			setThumb(null)
+			setImages([])
 
-				const pages = await AppService.instance(store.token || '').get(
-					`/cms/chapters/${chapter_id}/pages`
-				)
-				setOldImages(pages.map((page: { image: string }) => page.image))
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} catch (e: any) {
-				setError(e.message)
-			}
-			setIsLoading(false)
+			const pages = await AppService.instance(store.token || '').get(
+				`/cms/chapters/${chapter_id}/pages`
+			)
+			setOldImages(pages.map((page: { image: string }) => page.image))
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		} catch (e: any) {
+			setError(e.message)
 		}
+		setIsLoading(false)
+	}
 
+	useEffect(() => {
 		fetchChapter()
-	}, [chapter_id, reset, store.token])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [chapter_id, store.token])
 
 	const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(event.target.files || [])
@@ -239,7 +240,7 @@ const ChapterEditPage = () => {
 					rules={{ required: 'Price is required' }}
 					render={({ field }) => (
 						<FormControl fullWidth>
-							<Select {...field} value={field.value.coinPrice}>
+							<Select {...field} value={field.value}>
 								{chapterPrices.map((price) => (
 									<MenuItem key={price.fiatPrice} value={price.coinPrice}>
 										Rp. {price.fiatPrice.toLocaleString('id-ID')} -{' '}
