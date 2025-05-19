@@ -6,7 +6,7 @@ const AdsBanner = () => {
 	return (
 		<div className="container mx-auto my-2">
 			<Image
-				src={'/default_ads.jpeg'}
+				src={'/default_banner.png'}
 				alt={'ads banner'}
 				width={1280}
 				height={200}
