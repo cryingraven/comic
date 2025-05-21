@@ -10,7 +10,7 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
 
   const oldComics = (await oldQueryInterface.sequelize.query(
     'SELECT comic_type.`name` AS comic_type, comic.*, genre.`name` AS genre FROM comic' +
-      ' INNER JOIN comic_type ON comic.comic_type_id = comic_type.id INNER JOIN genre ON comic.main_genre_id = genre.id WHERE comic.id >= 1464',
+      ' INNER JOIN comic_type ON comic.comic_type_id = comic_type.id INNER JOIN genre ON comic.main_genre_id = genre.id',
     { type: QueryTypes.SELECT },
   )) as any[];
 
@@ -89,7 +89,8 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
           {
             title: oldComic.title || '',
             description: oldComic.synopsis || '',
-            comic_type: oldComic.comic_type || '',
+            comic_type:
+              oldComic.comic_type !== 'classic' ? 'webtoon' : 'classic',
             genre: oldComic.genre || 'No Genre',
             subgenres: subgenre || '',
             image: oldComic.cover_photo_large || oldComic.banner_photo || '',

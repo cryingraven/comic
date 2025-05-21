@@ -252,14 +252,14 @@ const ComicReadingPage = () => {
 							)}
 							<Button className="p-1 md:p-2" size="small" onClick={toggleLike}>
 								{isLiked ? <Favorite /> : <FavoriteBorder />}{' '}
-								{formatNumber(comic?.likes || 0)}
+								{formatNumber(chapter?.likes || 0)}
 							</Button>
 							<Button
 								className="p-1 md:p-2"
 								size="small"
 								onClick={() => setShowCommentsDrawer(true)}
 							>
-								<Comment /> {formatNumber(comic?.comments || 0)}
+								<Comment /> {formatNumber(chapter?.comments || 0)}
 							</Button>
 						</div>
 					</Toolbar>

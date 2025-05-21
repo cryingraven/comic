@@ -2,7 +2,7 @@ import { Sequelize } from 'sequelize';
 import { User } from 'src/models/user.model';
 import { FirebaseService } from 'src/modules/firebase/firebase.service';
 
-export async function koomik_firebase(
+export async function migrate_firebase(
   sequelize: Sequelize,
   firebaseService: FirebaseService,
 ) {
