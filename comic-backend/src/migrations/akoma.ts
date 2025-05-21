@@ -83,7 +83,7 @@ export async function akoma(sequelize: Sequelize, mongoUrl: string) {
           cover: comic.media_cover,
           banner: comic.media_banner,
           status: comic.status === 'ONGOING' ? 'on-going' : 'completed',
-          comic_type: comic.status === 'ONE-SHOT' ? 'one-shot' : 'series',
+          comic_type: 'webtoon',
           user_id: newAuthorId,
           genre: comic.genre,
           subgenres: `${comic.subgenre}, Exclusive`,

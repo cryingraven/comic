@@ -36,7 +36,7 @@ const LatestBlogs = () => {
 								className="rounded-t-lg w-full"
 							/>
 
-							<h2 className="text-xl font-bold mt-2 line-clamp-2">
+							<h2 className="text-xl font-bold mt-2 line-clamp-2 mx-2">
 								{blog.title}
 							</h2>
 							<p className="text-gray-600 p-2">

@@ -49,7 +49,10 @@ const GenrePage = () => {
 		return `/r/comics?genre=${selectedGenre?.name}&skip=${skip}&limit=${limit}&order_by=${sortOrder}`
 	}
 
-	const { data, size, setSize, mutate } = useSWRInfinite(getKey, fetcher)
+	const { data, size, setSize, mutate, isLoading } = useSWRInfinite(
+		getKey,
+		fetcher
+	)
 
 	const comics = data ? [].concat(...data) : []
 
@@ -136,7 +139,7 @@ const GenrePage = () => {
 				dataLength={comics.length}
 				next={() => setSize(size + 1)}
 				hasMore={comics.length % 12 === 0}
-				loader={<h4>Loading...</h4>}
+				loader={isLoading ? <h4>Loading...</h4> : null}
 			>
 				<div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
 					{comics.map((comic, index) => (

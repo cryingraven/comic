@@ -24,8 +24,12 @@ import { InternalTransaction } from './models/transaction.model';
 import { Blog } from './models/blog.model';
 import { Banner } from './models/banner.model';
 import Comments from './models/comments.model';
-import { koomik_firebase } from './migrations/koomik-firebase';
 import { FirebaseService } from './modules/firebase/firebase.service';
+import { migrate_akoma_user } from './migrations/akoma-user';
+import { migrate_firebase } from './migrations/migrate-firebase';
+import { migrate_koomik_user } from './migrations/koomik-user';
+import { akoma_comments } from './migrations/akoma-comments';
+import { migrate_koomik_comments } from './migrations/koomik-comments';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -42,8 +46,12 @@ export async function cli() {
     console.log('create - create table');
     console.log('migrate_akoma - migrate akoma data');
     console.log('migrate_koomik - migrate koomik data');
-    console.log('migrate_koomik_fb - migrate koomik firebase');
+    console.log('migrate_firebase - migrate firebase');
     console.log('migrate_akoma_images - migrate akoma images');
+    console.log('migrate_akoma_user - migrate akoma user');
+    console.log('migrate_koomik_user - migrate koomik user');
+    console.log('migrate_akoma_comments - migrate akoma comments');
+    console.log('migrate_koomik_comments - migrate koomik comments');
     rl.question('What do you want to do? ', async (answer) => {
       const config = app.get(ConfigService);
       const storage = app.get(StorageService);
@@ -62,6 +70,21 @@ export async function cli() {
         username: databaseUsername,
         password: databasePassword,
         database: databaseName,
+      });
+
+      const koomikDatabaseHost = config.get('KOOMIK_DATABASE_HOST');
+      const koomikDatabasePort = config.get('KOOMIK_DATABASE_PORT');
+      const koomikDatabaseUsername = config.get('KOOMIK_DATABASE_USERNAME');
+      const koomikDatabasePassword = config.get('KOOMIK_DATABASE_PASSWORD');
+      const koomikDatabaseName = config.get('KOOMIK_DATABASE_NAME');
+
+      const koomikSequelize = new Sequelize({
+        dialect: 'mysql',
+        host: koomikDatabaseHost,
+        port: koomikDatabasePort,
+        username: koomikDatabaseUsername,
+        password: koomikDatabasePassword,
+        database: koomikDatabaseName,
       });
 
       if (answer === 'create') {
@@ -106,24 +129,19 @@ export async function cli() {
         const akomaMongoUri = config.get('AKOMA_MONGO_URI');
         await akoma_images(storage, akomaMongoUri);
       } else if (answer === 'migrate_koomik') {
-        const koomikDatabaseHost = config.get('KOOMIK_DATABASE_HOST');
-        const koomikDatabasePort = config.get('KOOMIK_DATABASE_PORT');
-        const koomikDatabaseUsername = config.get('KOOMIK_DATABASE_USERNAME');
-        const koomikDatabasePassword = config.get('KOOMIK_DATABASE_PASSWORD');
-        const koomikDatabaseName = config.get('KOOMIK_DATABASE_NAME');
-
-        const koomikSequelize = new Sequelize({
-          dialect: 'mysql',
-          host: koomikDatabaseHost,
-          port: koomikDatabasePort,
-          username: koomikDatabaseUsername,
-          password: koomikDatabasePassword,
-          database: koomikDatabaseName,
-        });
-
         await koomik(sequelize, koomikSequelize);
       } else if (answer === 'migrate_koomik_fb') {
-        await koomik_firebase(sequelize, firebase);
+        await migrate_firebase(sequelize, firebase);
+      } else if (answer === 'migrate_akoma_user') {
+        const akomaMongoUri = config.get('AKOMA_MONGO_URI');
+        await migrate_akoma_user(sequelize, akomaMongoUri, firebase);
+      } else if (answer === 'migrate_koomik_user') {
+        await migrate_koomik_user(sequelize, koomikSequelize, firebase);
+      } else if (answer === 'migrate_akoma_comments') {
+        const akomaMongoUri = config.get('AKOMA_MONGO_URI');
+        await akoma_comments(sequelize, akomaMongoUri);
+      } else if (answer === 'migrate_koomik_comments') {
+        await migrate_koomik_comments(sequelize, koomikSequelize);
       }
 
       rl.close();
