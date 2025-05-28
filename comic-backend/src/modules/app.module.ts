@@ -34,8 +34,29 @@ import { CMSModule } from 'src/features/cms/cms.module';
         models, // Array of all models defined in your project
         autoLoadModels: true, // Loads all models automatically.
         synchronize: false,
+        pool: {
+          max: 10,
+          min: 0,
+          acquire: 30000,
+          idle: 10000,
+        },
         dialectOptions: {
           connectTimeout: 60000,
+        },
+        retry: {
+          match: [
+            /ETIMEDOUT/,
+            /EHOSTUNREACH/,
+            /ECONNRESET/,
+            /ECONNREFUSED/,
+            /ESOCKETTIMEDOUT/,
+            /socket ETIMEDOUT/,
+            'TimeoutError',
+            'SequelizeConnectionAcquireTimeoutError',
+          ],
+          max: 3,
+          backoffBase: 1000,
+          backoffExponent: 1.5,
         },
       }),
       inject: [ConfigService],
