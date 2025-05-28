@@ -30,6 +30,7 @@ import { migrate_firebase } from './migrations/migrate-firebase';
 import { migrate_koomik_user } from './migrations/koomik-user';
 import { akoma_comments } from './migrations/akoma-comments';
 import { migrate_koomik_comments } from './migrations/koomik-comments';
+import { migrate_koomik_revenue } from './migrations/koomik-revenue';
 
 export async function cli() {
   const app = await NestFactory.create(AppModule);
@@ -52,6 +53,7 @@ export async function cli() {
     console.log('migrate_koomik_user - migrate koomik user');
     console.log('migrate_akoma_comments - migrate akoma comments');
     console.log('migrate_koomik_comments - migrate koomik comments');
+    console.log('migrate_koomik_revenue - migrate koomik revenue');
     rl.question('What do you want to do? ', async (answer) => {
       const config = app.get(ConfigService);
       const storage = app.get(StorageService);
@@ -142,6 +144,8 @@ export async function cli() {
         await akoma_comments(sequelize, akomaMongoUri);
       } else if (answer === 'migrate_koomik_comments') {
         await migrate_koomik_comments(sequelize, koomikSequelize);
+      }else if (answer === 'migrate_koomik_revenue') {
+        await migrate_koomik_revenue(sequelize, koomikSequelize);
       }
 
       rl.close();

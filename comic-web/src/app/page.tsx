@@ -24,7 +24,7 @@ export default function Home() {
 				DefaultBackendService.instance().getTopComics(0, 12),
 				DefaultBackendService.instance().getActiveBannerByPosition('HT'),
 				DefaultBackendService.instance().getComics(
-					'Exclusive',
+					'Exclusive Comic',
 					undefined,
 					0,
 					12,

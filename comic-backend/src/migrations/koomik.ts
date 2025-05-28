@@ -20,7 +20,6 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
   )) as any[];
 
   for (const oldComic of oldComics) {
-    console.log(oldComic);
     const comicId = oldComic.id;
     const userId = oldComic.user_id;
 
@@ -75,15 +74,20 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
       let newComicId = null;
       let subgenre = '';
 
-      if (oldComic.genre_ids) {
+      if (oldComic.genre_ids && oldComic.genre_ids !== 'NULL') {
         const subgenreIds = oldComic.genre_ids.split(',');
         subgenre = subgenreIds
-          .map((id: any) => genres.find((genre: any) => genre.id === id)?.name)
+          .map(
+            (id: string) =>
+              genres.find((genre: any) => genre.id === parseInt(id.trim()))
+                ?.name,
+          )
           .join(', ');
       }
 
       if (checkComic.length > 0) {
         newComicId = checkComic[0].comic_id;
+        console.log('Comic already exists', newComicId);
       } else {
         newComicId = (await queryInterface.bulkInsert('comics', [
           {
@@ -106,6 +110,7 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
             updated_at: new Date(),
           },
         ])) as any[];
+        console.log('Comic created', newComicId);
       }
 
       const chapters = (await oldQueryInterface.sequelize.query(
@@ -131,6 +136,7 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
         let newChapterId = null;
         if (checkExistingChapter.length > 0) {
           newChapterId = checkExistingChapter[0].chapter_id;
+          console.log('Chapter already exists', newChapterId);
         } else {
           newChapterId = await queryInterface.bulkInsert('chapters', [
             {
@@ -144,6 +150,7 @@ export async function koomik(sequelize: Sequelize, oldSequelize: Sequelize) {
               updated_at: new Date(),
             },
           ]);
+          console.log('Chapter created', newChapterId);
         }
 
         const pages = (await oldQueryInterface.sequelize.query(

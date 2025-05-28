@@ -86,7 +86,7 @@ export async function akoma(sequelize: Sequelize, mongoUrl: string) {
           comic_type: 'webtoon',
           user_id: newAuthorId,
           genre: comic.genre,
-          subgenres: `${comic.subgenre}, Exclusive`,
+          subgenres: `${comic.subgenre}, Exclusive Comic`,
           views: comic.total_views || 0,
           likes: comic.totalLikes || 0,
           subscribers: comic.total_subscribers || 0,
