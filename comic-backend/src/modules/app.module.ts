@@ -12,6 +12,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { FileModule } from 'src/features/file/file.module';
 import { PublicModule } from 'src/features/public/public.module';
 import { CMSModule } from 'src/features/cms/cms.module';
+import { timeout } from 'rxjs';
 
 @Module({
   imports: [
@@ -34,11 +35,8 @@ import { CMSModule } from 'src/features/cms/cms.module';
         models, // Array of all models defined in your project
         autoLoadModels: true, // Loads all models automatically.
         synchronize: false,
-        pool: {
-          max: 10,
-          min: 0,
-          acquire: 30000,
-          idle: 10000,
+        dialectOptions: {
+          connectTimeout: 60000,
         },
       }),
       inject: [ConfigService],
