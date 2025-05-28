@@ -28,7 +28,7 @@ export default function Home() {
 					undefined,
 					0,
 					12,
-					'views::desc'
+					'random'
 				),
 				DefaultBackendService.instance().getComics(
 					undefined,
