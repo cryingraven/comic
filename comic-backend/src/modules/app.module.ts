@@ -38,8 +38,9 @@ import { timeout } from 'rxjs';
         pool: {
           max: 10,
           min: 0,
-          acquire: 60000,
-          idle: 10000,
+          acquire: 120000,
+          idle: 30000,
+          evict: 20000,
         },
         dialectOptions: {
           connectTimeout: 60000,
