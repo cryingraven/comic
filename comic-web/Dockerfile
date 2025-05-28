@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:23-alpine AS builder
+FROM node:23-alpine
 
 # Set the working directory in the container to /app
 WORKDIR /app
@@ -15,19 +15,6 @@ COPY . .
 
 # Build the Next.js application
 RUN npm run build
-
-# Production image, copy the build output and minimal server
-FROM node:23-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Copy only necessary files from the builder stage
-COPY --from=builder /app/. .
-
-# Install dependencies (production only)
-RUN npm install --legacy-peer-deps
 
 # Expose the port that Next.js will run on
 EXPOSE 3000
