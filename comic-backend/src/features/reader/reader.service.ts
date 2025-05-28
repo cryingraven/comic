@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import { Access } from 'src/models/access.model';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
@@ -74,13 +74,32 @@ export class ReaderService {
       },
     };
 
-    return this.comic.findAll({
-      include: [User],
-      where: filter,
-      offset: parseInt(skip.toString()),
-      limit: parseInt(limit.toString()),
-      order: [[parsedSort[0], parsedSort[1]]],
-    });
+    if (parsedSort.length === 2) {
+      return this.comic.findAll({
+        include: [User],
+        where: filter,
+        offset: parseInt(skip.toString()),
+        limit: parseInt(limit.toString()),
+        order: [[parsedSort[0], parsedSort[1]]],
+      });
+    } else {
+      if (parsedSort[0] === 'random') {
+        return this.comic.findAll({
+          include: [User],
+          where: filter,
+          order: Sequelize.literal('rand()'),
+          offset: parseInt(skip.toString()),
+          limit: parseInt(limit.toString()),
+        });
+      } else {
+        return this.comic.findAll({
+          include: [User],
+          where: filter,
+          offset: parseInt(skip.toString()),
+          limit: parseInt(limit.toString()),
+        });
+      }
+    }
   }
 
   getComicById(id: number) {
