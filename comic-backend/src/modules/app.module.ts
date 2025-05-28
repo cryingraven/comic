@@ -33,7 +33,13 @@ import { CMSModule } from 'src/features/cms/cms.module';
         database: configService.get<string>('DATABASE_NAME'),
         models, // Array of all models defined in your project
         autoLoadModels: true, // Loads all models automatically.
-        synchronize: process.env.NODE_ENV === 'development', // Careful with this in production! Automatically creates tables based on models.
+        synchronize: false,
+        pool: {
+          max: 10,
+          min: 0,
+          acquire: 30000,
+          idle: 10000,
+        },
       }),
       inject: [ConfigService],
     }),
