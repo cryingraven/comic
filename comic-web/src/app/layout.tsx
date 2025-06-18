@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Providers from '@/providers'
 import Layout from '@/components/layout/main'
+// import Image from 'next/image'
 
 export const metadata: Metadata = {
 	title: '24Comic - Home',
@@ -116,6 +117,15 @@ export default function RootLayout({
 				<Providers>
 					<Layout>{children}</Layout>
 				</Providers>
+				{/* <div className="flex flex-col min-h-screen w-full">
+					<Image
+						src={'/maintenance.jpeg'}
+						alt="Maintenance Mode"
+						width={1920}
+						height={1080}
+						className="w-full h-auto object-cover"
+					/>
+				</div> */}
 			</body>
 		</html>
 	)

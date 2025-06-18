@@ -82,6 +82,20 @@ export default class AppService {
 		return response.data.data
 	}
 
+	async publishComic(comicId: number) {
+		const response = await AppService._axios.post(
+			`/cms/comics/publish/${comicId}`
+		)
+		return response.data.data
+	}
+
+	async deleteComic(comicId: number) {
+		const response = await AppService._axios.post(
+			`/cms/comics/delete-all/${comicId}`
+		)
+		return response.data.data
+	}
+
 	async getAuthorProfile() {
 		const response = await AppService._axios.get('/users/me')
 		return response.data.data
@@ -133,8 +147,8 @@ export default class AppService {
 		return response.data.data
 	}
 
-  async getAuthorStats() {
-    const response = await AppService._axios.get('/cms/author/stats')
-    return response.data.data
-  }
+	async getAuthorStats() {
+		const response = await AppService._axios.get('/cms/author/stats')
+		return response.data.data
+	}
 }

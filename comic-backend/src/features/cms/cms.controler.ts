@@ -192,14 +192,36 @@ export class CMSController {
     return ArrayResponseDto.success('success', data);
   }
 
-
   @CacheTTL(60)
   @Get('author/stats')
   @UseGuards(FirebaseGuard)
   @UseInterceptors(CacheInterceptor)
   async getAuthorWalletBalance(@Req() userRequest: UserRequest) {
     const userId = userRequest.user.uid || '';
-    const data = await this.cmsService.getDashboardStatsCountByFirebaseUid(userId);
+    const data =
+      await this.cmsService.getDashboardStatsCountByFirebaseUid(userId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @UseGuards(FirebaseGuard)
+  @Post('comics/publish/:comicId')
+  async publishComic(
+    @Req() userRequest: UserRequest,
+    @Param('comicId') comicId: number,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.publishComic(comicId, userId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @UseGuards(FirebaseGuard)
+  @Post('comics/delete-all/:comicId')
+  async deleteAllComic(
+    @Req() userRequest: UserRequest,
+    @Param('comicId') comicId: number,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.deleteComicAndAllData(comicId, userId);
     return BasicResponseDto.success('success', data);
   }
 }

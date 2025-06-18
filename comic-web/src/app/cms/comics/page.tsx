@@ -27,6 +27,7 @@ import useStore from '@/store'
 import moment from 'moment'
 import { getImageUrl } from '@/utils/imageurl'
 import { formatNumber } from '@/utils/format'
+import TermListPage from '@/components/page/term'
 
 const ManageComicPage: NextPage = () => {
 	const router = useRouter()
@@ -36,6 +37,9 @@ const ManageComicPage: NextPage = () => {
 	const [orderBy, setOrderBy] = useState('title')
 	const [loading, setLoading] = useState(false)
 	const [openDialog, setOpenDialog] = useState(false)
+	const [isAgreeTerms, setIsAgreeTerms] = useState(false)
+	const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+	const [openPublishDialog, setOpenPublishDialog] = useState(false)
 	const [selectedComicId, setSelectedComicId] = useState<number | null>(null)
 
 	const fetchComics = async () => {
@@ -89,6 +93,31 @@ const ManageComicPage: NextPage = () => {
 		if (selectedComicId !== null) {
 			handleUnpublish(selectedComicId)
 			handleCloseDialog()
+		}
+	}
+
+	const handleDeleteComic = async (comicId: number) => {
+		try {
+			await AppService.instance(store.token || '').deleteComic(comicId)
+			fetchComics()
+			setOpenDeleteDialog(false)
+		} catch (error) {
+			console.error('Error deleting comic:', error)
+		}
+	}
+
+	const handlePublishComic = async (comicId: number) => {
+		if (!isAgreeTerms) {
+			alert('You must agree to the terms and conditions to publish the comic.')
+			return
+		}
+
+		try {
+			await AppService.instance(store.token || '').publishComic(comicId)
+			fetchComics()
+			setOpenPublishDialog(false)
+		} catch (error) {
+			console.error('Error publishing comic:', error)
 		}
 	}
 
@@ -219,15 +248,46 @@ const ManageComicPage: NextPage = () => {
 											>
 												Edit
 											</Button>
-											<Button
-												variant="contained"
-												color="error"
-												size="small"
-												className="rounded-full"
-												onClick={() => handleOpenDialog(comic.comic_id)}
-											>
-												Unpublish
-											</Button>
+											{comic.status.toLowerCase() !== 'unpublished' && (
+												<Button
+													variant="contained"
+													color="error"
+													size="small"
+													className="rounded-full"
+													onClick={() => handleOpenDialog(comic.comic_id)}
+												>
+													Unpublish
+												</Button>
+											)}
+											{comic.status.toLowerCase() === 'unpublished' && (
+												<Button
+													variant="contained"
+													color="success"
+													size="small"
+													className="rounded-full"
+													onClick={() => {
+														setSelectedComicId(comic.comic_id)
+														setOpenPublishDialog(true)
+														setIsAgreeTerms(false)
+													}}
+												>
+													Publish
+												</Button>
+											)}
+											{comic.status.toLowerCase() === 'unpublished' && (
+												<Button
+													variant="contained"
+													color="error"
+													size="small"
+													className="rounded-full"
+													onClick={() => {
+														setOpenDeleteDialog(true)
+														setSelectedComicId(comic.comic_id)
+													}}
+												>
+													Delete
+												</Button>
+											)}
 										</div>
 									</TableCell>
 								</TableRow>
@@ -248,6 +308,68 @@ const ManageComicPage: NextPage = () => {
 					</Button>
 					<Button onClick={handleConfirmUnpublish} color="error">
 						Unpublish
+					</Button>
+				</DialogActions>
+			</Dialog>
+			<Dialog
+				open={openDeleteDialog}
+				onClose={() => setOpenDeleteDialog(false)}
+			>
+				<DialogTitle>Confirm Delete</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						Are you sure you want to delete this comic? This action cannot be
+						undone and will remove all associated data.
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setOpenDeleteDialog(false)} color="primary">
+						Cancel
+					</Button>
+					<Button
+						onClick={() => handleDeleteComic(selectedComicId || 0)}
+						color="error"
+					>
+						Delete
+					</Button>
+				</DialogActions>
+			</Dialog>
+			<Dialog
+				open={openPublishDialog}
+				onClose={() => setOpenPublishDialog(false)}
+			>
+				<DialogTitle>Confirm Publish</DialogTitle>
+				<DialogContent>
+					<DialogContentText>
+						<div>
+							Are you sure you want to publish this comic? It will be visible to
+							all users.
+						</div>
+						<div className="w-full overflow-y-scroll max-h-96">
+							<TermListPage />
+						</div>
+						<div className="mt-2">
+							<label>
+								<input
+									type="checkbox"
+									className="mr-2"
+									checked={isAgreeTerms}
+									onChange={(e) => setIsAgreeTerms(e.target.checked)}
+								/>
+								I agree to the terms and conditions
+							</label>
+						</div>
+					</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setOpenPublishDialog(false)} color="primary">
+						Cancel
+					</Button>
+					<Button
+						onClick={() => handlePublishComic(selectedComicId || 0)}
+						color="success"
+					>
+						Publish
 					</Button>
 				</DialogActions>
 			</Dialog>

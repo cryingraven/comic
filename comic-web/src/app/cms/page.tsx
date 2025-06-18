@@ -17,6 +17,7 @@ import useStore from '@/store'
 import { User } from '@/models/user'
 import AppService from '@/services/app'
 import { useEffect, useState } from 'react'
+import { Alert } from '@mui/material'
 
 ChartJS.register(
 	CategoryScale,
@@ -89,6 +90,17 @@ const DashboardHomePage: NextPage = () => {
 		<div className="p-4 w-full">
 			<h1 className="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
 			<div className="flex flex-wrap -mx-2">
+				<Alert severity="warning" className="w-full mb-4">
+					<p>
+						Pada tanggal <strong>[Tanggal] [Bulan] 2025</strong>, semua komik
+						yang <strong>BELUM DI-PUBLISH</strong> akan{' '}
+						<strong>DIHAPUS PERMANEN</strong>.
+					</p>
+					<p>
+						Komik yang sudah terbit <strong>AMAN</strong> dan tidak akan
+						terpengaruh. Jangan sampai kehilangan karyamu!
+					</p>
+				</Alert>
 				<div className="w-full sm:w-1/2 md:w-1/3 px-2 mb-4">
 					<div className="bg-white shadow-md rounded-lg p-4">
 						<div>

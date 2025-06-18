@@ -145,7 +145,7 @@ const WalletPage = () => {
 							</ListItem>
 						))}
 					</List>
-					{transactions.length === 0 && (
+					{transactions.length > 0 && transactions.length % limit === 0 && (
 						<Button
 							variant="outlined"
 							color="primary"

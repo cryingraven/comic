@@ -514,4 +514,104 @@ export default class CMSService {
       total_views: totalViews,
     };
   }
+
+  async publishComic(comicId: number, userId: string) {
+    const checkComic = await this.comicModel.findOne({
+      where: {
+        comic_id: comicId,
+      },
+    });
+
+    if (!checkComic) {
+      throw new Error('Comic not found');
+    }
+
+    const profileAuthor = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!profileAuthor) {
+      throw new Error('User not found');
+    }
+
+    if (profileAuthor.user_id !== checkComic.user_id) {
+      throw new Error('You are not the author of this comic');
+    }
+
+    const publishedComic = checkComic;
+    publishedComic.published_at = new Date();
+    publishedComic.status = 'on-going';
+    await publishedComic.save();
+
+    return publishedComic;
+  }
+
+  async deleteComicAndAllData(comicId: number, userId: string) {
+    const checkComic = await this.comicModel.findOne({
+      where: {
+        comic_id: comicId,
+      },
+    });
+
+    if (!checkComic) {
+      throw new Error('Comic not found');
+    }
+
+    const profileAuthor = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!profileAuthor) {
+      throw new Error('User not found');
+    }
+
+    if (profileAuthor.user_id !== checkComic.user_id) {
+      throw new Error('You are not the author of this comic');
+    }
+
+    // Delete all chapters and pages associated with the comic
+    const chapters = await this.chapterModel.findAll({
+      where: {
+        comic_id: comicId,
+      },
+    });
+
+    for (const chapter of chapters) {
+      await this.sequelize.query(
+        'DELETE FROM comments WHERE chapter_id = :chapterId',
+        {
+          replacements: { chapterId: chapter.chapter_id },
+        },
+      );
+      await this.sequelize.query(
+        'DELETE FROM read_histories WHERE chapter_id = :chapterId',
+        {
+          replacements: { chapterId: chapter.chapter_id },
+        },
+      );
+      await this.sequelize.query(
+        'DELETE FROM favorites WHERE chapter_id = :chapterId',
+        {
+          replacements: { chapterId: chapter.chapter_id },
+        },
+      );
+      await this.sequelize.query(
+        'DELETE FROM pages WHERE chapter_id = :chapterId',
+        {
+          replacements: { chapterId: chapter.chapter_id },
+        },
+      );
+
+      await chapter.destroy();
+    }
+
+    // Delete the comic itself
+    await checkComic.destroy();
+
+    return { message: 'Comic and all associated data deleted successfully' };
+  }
 }
