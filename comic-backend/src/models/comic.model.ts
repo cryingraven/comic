@@ -86,6 +86,10 @@ export class Comic extends Model {
   @Column
   is_editor_choice: boolean;
 
+  @Default(false)
+  @Column
+  is_agree_tnc: boolean;
+
   @Column
   published_at: Date;
 

@@ -356,7 +356,7 @@ const ManageComicPage: NextPage = () => {
 									checked={isAgreeTerms}
 									onChange={(e) => setIsAgreeTerms(e.target.checked)}
 								/>
-								I agree to the terms and conditions
+								I agree to the Terms and Conditions and approve this comic to be published on 24Comic.
 							</label>
 						</div>
 					</DialogContentText>

@@ -131,7 +131,8 @@ export default class CMSService {
     newComic.image = comic.image;
     newComic.banner = comic.banner;
     newComic.user_id = profileAuthor.user_id;
-    newComic.status = 'on-going';
+    newComic.status = 'unpublished';
+    newComic.is_agree_tnc = false;
 
     const savedComic = await newComic.save();
 
@@ -543,6 +544,7 @@ export default class CMSService {
     const publishedComic = checkComic;
     publishedComic.published_at = new Date();
     publishedComic.status = 'on-going';
+    publishedComic.is_agree_tnc = true; // Assuming the author agrees to TNC when publishing
     await publishedComic.save();
 
     return publishedComic;
