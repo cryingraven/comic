@@ -12,6 +12,7 @@ import { FirebaseModule } from 'src/modules/firebase/firebase.module';
 import { Genre } from 'src/models/genre.model';
 import { Favorites } from 'src/models/favorites.model';
 import Comments from 'src/models/comments.model';
+import { InternalTransaction } from 'src/models/transaction.model';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import Comments from 'src/models/comments.model';
       Genre,
       Favorites,
       Comments,
+      InternalTransaction,
     ]),
     FirebaseModule,
   ],

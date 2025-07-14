@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op, Sequelize } from 'sequelize';
+import { Op } from 'sequelize';
+import { Sequelize } from 'sequelize-typescript';
 import { Access } from 'src/models/access.model';
 import { Chapter } from 'src/models/chapter.model';
 import { Comic } from 'src/models/comic.model';
@@ -26,6 +27,7 @@ export class ReaderService {
     @InjectModel(Comments) private comments: typeof Comments,
     @InjectModel(InternalTransaction)
     private transaction: typeof InternalTransaction,
+    private readonly sequelize: Sequelize,
   ) {}
 
   getAll() {
@@ -302,29 +304,54 @@ export class ReaderService {
     if (readHistory) {
       return readHistory;
     } else {
-      comic.views += 1;
-      await comic.save();
+      const result = await this.sequelize.transaction(async (t) => {
+        const author = await this.user.findOne({
+          where: {
+            user_id: comic.user_id,
+          },
+        });
 
-      chapter.views += 1;
-      await chapter.save();
+        author.wallet_balance += chapter.fiat_price;
 
-      const read = await this.readHistory.create({
-        user_id: userId,
-        comic_id: comicId,
-        chapter_id: chapterId,
-        created_at: new Date(),
+        await author.save({
+          transaction: t,
+        });
+
+        comic.views += 1;
+        await comic.save({
+          transaction: t,
+        });
+
+        chapter.views += 1;
+        await chapter.save({
+          transaction: t,
+        });
+
+        const read = await this.readHistory.create({
+          user_id: userId,
+          comic_id: comicId,
+          chapter_id: chapterId,
+          created_at: new Date(),
+        });
+
+        await this.transaction.create(
+          {
+            user_id: comic.user_id,
+            comic_id: chapter.comic_id,
+            chapter_id: chapter.chapter_id,
+            amount: 2.5,
+            type: 'sell-comic',
+            status: 'success',
+          },
+          {
+            transaction: t,
+          },
+        );
+
+        return read;
       });
 
-      await this.transaction.create({
-        user_id: comic.user_id,
-        comic_id: chapter.comic_id,
-        chapter_id: chapter.chapter_id,
-        amount: 2.5,
-        type: 'sell-comic',
-        status: 'success',
-      });
-
-      return read;
+      return result;
     }
   }
 
