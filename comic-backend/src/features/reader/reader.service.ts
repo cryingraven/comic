@@ -9,6 +9,7 @@ import { Favorites } from 'src/models/favorites.model';
 import { Genre } from 'src/models/genre.model';
 import { Page } from 'src/models/page.model';
 import { ReadHistory } from 'src/models/readhistory.model';
+import { InternalTransaction } from 'src/models/transaction.model';
 import { User } from 'src/models/user.model';
 
 @Injectable()
@@ -23,6 +24,8 @@ export class ReaderService {
     @InjectModel(ReadHistory) private readHistory: typeof ReadHistory,
     @InjectModel(Favorites) private favorites: typeof Favorites,
     @InjectModel(Comments) private comments: typeof Comments,
+    @InjectModel(InternalTransaction)
+    private transaction: typeof InternalTransaction,
   ) {}
 
   getAll() {
@@ -305,12 +308,23 @@ export class ReaderService {
       chapter.views += 1;
       await chapter.save();
 
-      return await this.readHistory.create({
+      const read = await this.readHistory.create({
         user_id: userId,
         comic_id: comicId,
         chapter_id: chapterId,
         created_at: new Date(),
       });
+
+      await this.transaction.create({
+        user_id: comic.user_id,
+        comic_id: chapter.comic_id,
+        chapter_id: chapter.chapter_id,
+        amount: 2.5,
+        type: 'sell-comic',
+        status: 'success',
+      });
+
+      return read;
     }
   }
 
