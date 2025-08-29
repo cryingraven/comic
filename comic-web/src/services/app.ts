@@ -151,4 +151,18 @@ export default class AppService {
 		const response = await AppService._axios.get('/cms/author/stats')
 		return response.data.data
 	}
+
+	async publishChapter(chapterId: number) {
+		const response = await AppService._axios.post(
+			`/cms/comics/chapters/publish/${chapterId}`
+		)
+		return response.data.data
+	}
+
+	async unpublishChapter(chapterId: number) {
+		const response = await AppService._axios.delete(
+			`/cms/comics/chapters/${chapterId}`
+		)
+		return response.data.data
+	}
 }

@@ -1,4 +1,4 @@
-import { MaxLength } from 'class-validator';
+import { IsOptional, MaxLength } from 'class-validator';
 
 export class SaveComicDTO {
   @MaxLength(255)
@@ -28,6 +28,9 @@ export class SaveComicDTO {
 }
 
 export class SaveChapterDTO {
+  @IsOptional()
+  chapter_no: number | null;
+
   @MaxLength(255)
   title: string;
 

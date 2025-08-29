@@ -216,6 +216,17 @@ export class ReaderController {
     return BasicResponseDto.success('Read history added successfully', data);
   }
 
+  @Post('read-history/anonym')
+  async readHistoryAnon(
+    @Body() body: ReadHistoryDto,
+  ): Promise<BasicResponseDto> {
+    const data = await this.readerService.addAnonymousReadHistory(
+      body.comic_id,
+      body.chapter_id,
+    );
+    return BasicResponseDto.success('Read history added successfully', data);
+  }
+
   @CacheTTL(2)
   @Get('favorites/:chapterId')
   @UseGuards(FirebaseGuard)

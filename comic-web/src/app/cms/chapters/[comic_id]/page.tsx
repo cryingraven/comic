@@ -63,6 +63,32 @@ const ManageChapterPage: NextPage = () => {
 		}
 	}
 
+	const publishChapter = async (chapterId: number) => {
+		if (!comic_id) return
+		setLoading(true)
+		try {
+			await AppService.instance(store.token || '').publishChapter(chapterId)
+			await fetchChapters()
+		} catch (error) {
+			console.error('Error publishing chapter:', error)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const unpublishChapter = async (chapterId: number) => {
+		if (!comic_id) return
+		setLoading(true)
+		try {
+			await AppService.instance(store.token || '').unpublishChapter(chapterId)
+			await fetchChapters()
+		} catch (error) {
+			console.error('Error unpublishing chapter:', error)
+		} finally {
+			setLoading(false)
+		}
+	}
+
 	useEffect(() => {
 		fetchChapters()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -184,7 +210,9 @@ const ManageChapterPage: NextPage = () => {
 										</div>
 									</TableCell>
 									<TableCell>
-										{moment(chapter.created_at).format('LLL')}
+										{chapter.published_at
+											? moment(chapter.published_at).format('LLL')
+											: 'Unpublished'}
 									</TableCell>
 									<TableCell>
 										<div className="flex space-x-1">
@@ -201,14 +229,27 @@ const ManageChapterPage: NextPage = () => {
 											>
 												Edit
 											</Button>
-											<Button
-												variant="contained"
-												color="error"
-												size="small"
-												className="rounded-full"
-											>
-												Unpublish
-											</Button>
+											{chapter.published_at ? (
+												<Button
+													variant="contained"
+													color="error"
+													size="small"
+													className="rounded-full"
+													onClick={() => unpublishChapter(chapter.chapter_id)}
+												>
+													Unpublish
+												</Button>
+											) : (
+												<Button
+													variant="contained"
+													color="success"
+													size="small"
+													className="rounded-full"
+													onClick={() => publishChapter(chapter.chapter_id)}
+												>
+													Publish
+												</Button>
+											)}
 										</div>
 									</TableCell>
 								</TableRow>

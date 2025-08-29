@@ -30,6 +30,7 @@ import { retry } from '@/utils/retry'
 import useStore from '@/store'
 
 interface ChapterFormData {
+	chapter_no: number | null
 	title: string
 	subtitle: string
 	price: number
@@ -47,6 +48,7 @@ const ChapterCreationPage = () => {
 	const { comic_id } = useParams()
 	const { control, handleSubmit, setValue } = useForm<ChapterFormData>({
 		defaultValues: {
+			chapter_no: null,
 			title: '',
 			subtitle: '',
 			price: 0,
@@ -134,6 +136,7 @@ const ChapterCreationPage = () => {
 				published_at: data.publishedAt,
 				image: imageUrl,
 				comic_id: parseInt(comic_id as string),
+				chapter_no: data.chapter_no,
 			}
 
 			await retry(() =>
@@ -169,7 +172,25 @@ const ChapterCreationPage = () => {
 						}
 					}}
 				/>
-
+				<Controller
+					name="chapter_no"
+					control={control}
+					rules={{ required: 'Chapter number is required' }}
+					render={({ field }) => (
+						<TextField
+							label="Chapter Number"
+							{...field}
+							type="number"
+							fullWidth
+							InputProps={{
+								inputProps: {
+									min: 1,
+									max: 9999,
+								},
+							}}
+						/>
+					)}
+				/>
 				<Controller
 					name="title"
 					control={control}

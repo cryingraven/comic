@@ -31,6 +31,7 @@ import { Chapter } from '@/models/chapter'
 import { getImageUrl } from '@/utils/imageurl'
 
 interface ChapterFormData {
+	chapter_no: number | null
 	title: string
 	subtitle: string
 	price: number
@@ -48,6 +49,7 @@ const ChapterEditPage = () => {
 	const { comic_id, chapter_id } = useParams()
 	const { control, handleSubmit, setValue, reset } = useForm<ChapterFormData>({
 		defaultValues: {
+			chapter_no: null,
 			title: '',
 			subtitle: '',
 			price: 0,
@@ -80,6 +82,7 @@ const ChapterEditPage = () => {
 				publishedAt: chapter.published_at
 					? new Date(chapter.published_at)
 					: null,
+				chapter_no: chapter.chapter_no,
 			})
 			setThumb(null)
 			setImages([])
@@ -163,6 +166,7 @@ const ChapterEditPage = () => {
 			const price = chapterPrices.find((p) => p.coinPrice === data.price)
 
 			const updatedChapter = {
+				chapter_no: data.chapter_no,
 				title: data.title,
 				subtitle: data.subtitle,
 				price: price?.coinPrice || 0,
@@ -210,6 +214,26 @@ const ChapterEditPage = () => {
 							setThumb(files[0])
 						}
 					}}
+				/>
+
+				<Controller
+					name="chapter_no"
+					control={control}
+					rules={{ required: 'Chapter number is required' }}
+					render={({ field }) => (
+						<TextField
+							label="Chapter Number"
+							{...field}
+							type="number"
+							fullWidth
+							InputProps={{
+								inputProps: {
+									min: 1,
+									max: 9999,
+								},
+							}}
+						/>
+					)}
 				/>
 
 				<Controller

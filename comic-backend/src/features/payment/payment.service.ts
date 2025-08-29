@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Cache } from 'cache-manager';
 import { Sequelize } from 'sequelize-typescript';
 import { Access } from 'src/models/access.model';
 import { Chapter } from 'src/models/chapter.model';
@@ -32,10 +34,13 @@ export class PaymentService {
     @InjectModel(InternalTransaction)
     private transactionModel: typeof InternalTransaction,
     private readonly sequelize: Sequelize,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  getPaymentMethods() {
-    return this.paymentMethodModel.findAll();
+  async getPaymentMethods() {
+    return this.cacheManager.wrap('payment_methods', () =>
+      this.paymentMethodModel.findAll(),
+    );
   }
 
   async buyChapterUsingCoin(
@@ -234,16 +239,20 @@ export class PaymentService {
   }
 
   async getAllPackages() {
-    return this.packageModel.findAll();
+    return this.cacheManager.wrap('all_packages', () =>
+      this.packageModel.findAll(),
+    );
   }
 
   async getPaymentById(paymentId: number) {
-    return this.paymentModel.findOne({
-      include: [User, PaymentMethod],
-      where: {
-        payment_id: paymentId,
-      },
-    });
+    return this.cacheManager.wrap(`payment_${paymentId}`, () =>
+      this.paymentModel.findOne({
+        include: [User, PaymentMethod],
+        where: {
+          payment_id: paymentId,
+        },
+      }),
+    );
   }
 
   async giveDonation(

@@ -111,6 +111,15 @@ const ComicReadingPage = () => {
 			} catch (err) {
 				console.log(err)
 			}
+		} else {
+			try {
+				await AppService.instance().post(`/r/read-history/anonym`, {
+					comic_id: comicId,
+					chapter_id: chapterId,
+				})
+			} catch (err) {
+				console.log(err)
+			}
 		}
 	}
 

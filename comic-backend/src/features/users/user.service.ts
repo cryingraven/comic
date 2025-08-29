@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Cache } from 'cache-manager';
 import { SaveProfileDTO } from 'src/dto/saveprofile.dto';
 import { User } from 'src/models/user.model';
 import { FirebaseService } from 'src/modules/firebase/firebase.service';
@@ -8,11 +10,27 @@ import { FirebaseService } from 'src/modules/firebase/firebase.service';
 export class UserService {
   constructor(
     @InjectModel(User) private user: typeof User,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  getUserProfile(firebaseUid: string) {
-    return this.user.findOne({ where: { firebase_uid: firebaseUid } });
+  async getUserProfile(firebaseUid: string) {
+    const cacheKey = `user_profile_${firebaseUid}`;
+    const cachedProfile = await this.cacheManager.get(cacheKey);
+
+    if (cachedProfile) {
+      return cachedProfile;
+    }
+
+    const profile = await this.user.findOne({
+      where: { firebase_uid: firebaseUid },
+    });
+
+    if (profile) {
+      await this.cacheManager.set(cacheKey, profile, 3600); // Cache for 1 hour
+    }
+
+    return profile;
   }
 
   async saveProfile(firebaseUid: string, profile: SaveProfileDTO) {

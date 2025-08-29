@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { Cache } from 'cache-manager';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Access } from 'src/models/access.model';
@@ -27,11 +29,12 @@ export class ReaderService {
     @InjectModel(Comments) private comments: typeof Comments,
     @InjectModel(InternalTransaction)
     private transaction: typeof InternalTransaction,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly sequelize: Sequelize,
   ) {}
 
-  getAll() {
-    return this.user.findAll();
+  async getAll() {
+    return this.cacheManager.wrap('all_users', () => this.user.findAll());
   }
 
   findComics(
@@ -79,43 +82,52 @@ export class ReaderService {
       },
     };
 
+    const cacheKey = `comics_${genre}_${authorId}_${skip}_${limit}_${sort}_${search}`;
+
     if (parsedSort.length === 2) {
-      return this.comic.findAll({
-        include: [User],
-        where: filter,
-        offset: parseInt(skip.toString()),
-        limit: parseInt(limit.toString()),
-        order: [[parsedSort[0], parsedSort[1]]],
-      });
+      return this.cacheManager.wrap(cacheKey, () =>
+        this.comic.findAll({
+          include: [User],
+          where: filter,
+          offset: parseInt(skip.toString()),
+          limit: parseInt(limit.toString()),
+          order: [[parsedSort[0], parsedSort[1]]],
+        }),
+      );
     } else {
       if (parsedSort[0] === 'random') {
-        return this.comic.findAll({
-          include: [User],
-          where: filter,
-          order: Sequelize.literal('rand()'),
-          offset: parseInt(skip.toString()),
-          limit: parseInt(limit.toString()),
-        });
+        return this.cacheManager.wrap(cacheKey, () =>
+          this.comic.findAll({
+            include: [User],
+            where: filter,
+            order: Sequelize.literal('rand()'),
+            offset: parseInt(skip.toString()),
+            limit: parseInt(limit.toString()),
+          }),
+        );
       } else {
-        return this.comic.findAll({
-          include: [User],
-          where: filter,
-          offset: parseInt(skip.toString()),
-          limit: parseInt(limit.toString()),
-        });
+        return this.cacheManager.wrap(cacheKey, () =>
+          this.comic.findAll({
+            include: [User],
+            where: filter,
+            offset: parseInt(skip.toString()),
+            limit: parseInt(limit.toString()),
+          }),
+        );
       }
     }
   }
 
   getComicById(id: number) {
-    return this.comic.findOne({
-      include: [User],
-      where: {
-        comic_id: id,
-      },
-    });
+    return this.cacheManager.wrap(`comic_${id}`, () =>
+      this.comic.findOne({
+        include: [User],
+        where: {
+          comic_id: id,
+        },
+      }),
+    );
   }
-
   findChapters(
     comicId: number,
     skip: number = 0,
@@ -123,15 +135,24 @@ export class ReaderService {
     sor: string | null = 'created_at::desc',
   ) {
     const parsedSort = sor.split('::');
+    const cacheKey = `chapters_${comicId}_${skip}_${limit}_${sor}`;
 
-    return this.chapter.findAll({
-      where: {
-        comic_id: comicId,
-      },
-      offset: parseInt(skip.toString()),
-      limit: parseInt(limit.toString()),
-      order: [[parsedSort[0], parsedSort[1]]],
-    });
+    return this.cacheManager.wrap(cacheKey, () =>
+      this.chapter.findAll({
+        where: {
+          comic_id: comicId,
+          published_at: {
+            [Op.ne]: null,
+          },
+        },
+        offset: parseInt(skip.toString()),
+        limit: parseInt(limit.toString()),
+        order: [
+          [parsedSort[0], parsedSort[1]],
+          ['chapter_no', parsedSort[1]],
+        ],
+      }),
+    );
   }
 
   async findChaptersWithAccess(
@@ -152,82 +173,105 @@ export class ReaderService {
     }
 
     const parsedSort = sor.split('::');
+    const cacheKey = `chapters_with_access_${firebaseUid}_${comicId}_${skip}_${limit}_${sor}`;
 
-    return this.chapter.findAll({
-      include: [
-        {
-          model: Access,
-          where: {
-            user_id: user.user_id,
-            comic_id: comicId,
+    return this.cacheManager.wrap(cacheKey, () =>
+      this.chapter.findAll({
+        include: [
+          {
+            model: Access,
+            where: {
+              user_id: user.user_id,
+              comic_id: comicId,
+            },
+            required: false,
           },
-          required: false,
+        ],
+        where: {
+          comic_id: comicId,
+          published_at: {
+            [Op.ne]: null,
+          },
         },
-      ],
-      where: {
-        comic_id: comicId,
-      },
-      offset: parseInt(skip.toString()),
-      limit: parseInt(limit.toString()),
-      order: [[parsedSort[0], parsedSort[1]]],
-    });
+        offset: parseInt(skip.toString()),
+        limit: parseInt(limit.toString()),
+        order: [
+          [parsedSort[0], parsedSort[1]],
+          ['chapter_no', parsedSort[1]],
+        ],
+      }),
+    );
   }
 
   getChapterById(chapterId: number) {
-    return this.chapter.findOne({
-      where: {
-        chapter_id: chapterId,
-      },
-    });
+    return this.cacheManager.wrap(`chapter_${chapterId}`, () =>
+      this.chapter.findOne({
+        where: {
+          chapter_id: chapterId,
+        },
+      }),
+    );
   }
 
   getPages(chapterId: number) {
-    return this.page.findAll({
-      where: {
-        chapter_id: chapterId,
-      },
-    });
+    return this.cacheManager.wrap(`pages_${chapterId}`, () =>
+      this.page.findAll({
+        where: {
+          chapter_id: chapterId,
+        },
+      }),
+    );
   }
 
   async findMainGenres() {
-    return await this.genre.findAll({
-      where: {
-        id: {
-          [Op.lte]: 8,
+    return await this.cacheManager.wrap('main_genres', () =>
+      this.genre.findAll({
+        where: {
+          id: {
+            [Op.lte]: 8,
+          },
         },
-      },
-    });
+      }),
+    );
   }
 
   async findAllGenres() {
-    return await this.genre.findAll();
+    return await this.cacheManager.wrap('all_genres', () =>
+      this.genre.findAll(),
+    );
   }
 
   async getPreviousChapter(comicId: number, chapterId: number) {
-    return await this.chapter.findOne({
-      where: {
-        comic_id: comicId,
-        chapter_id: {
-          [Op.lt]: chapterId,
-          [Op.gt]: 0,
+    const cacheKey = `previous_chapter_${comicId}_${chapterId}`;
+    return await this.cacheManager.wrap(cacheKey, () =>
+      this.chapter.findOne({
+        where: {
+          comic_id: comicId,
+          chapter_id: {
+            [Op.lt]: chapterId,
+            [Op.gt]: 0,
+          },
         },
-      },
-      order: [['chapter_id', 'DESC']],
-      limit: 1,
-    });
+        order: [['chapter_id', 'DESC']],
+        limit: 1,
+      }),
+    );
   }
 
   async getNextChapter(comicId: number, chapterId: number) {
-    return await this.chapter.findOne({
-      where: {
-        comic_id: comicId,
-        chapter_id: {
-          [Op.gt]: chapterId,
+    const cacheKey = `next_chapter_${comicId}_${chapterId}`;
+    return await this.cacheManager.wrap(cacheKey, () =>
+      this.chapter.findOne({
+        where: {
+          comic_id: comicId,
+          chapter_id: {
+            [Op.gt]: chapterId,
+          },
         },
-      },
-      order: [['chapter_id', 'ASC']],
-      limit: 1,
-    });
+        order: [['chapter_id', 'ASC']],
+        limit: 1,
+      }),
+    );
   }
 
   async getAccess(firebaseUid: string, comicId: number, chapterId: number) {
@@ -242,17 +286,83 @@ export class ReaderService {
     }
 
     const userId = user.user_id;
+    const cacheKey = `access_${userId}_${comicId}_${chapterId}`;
 
-    return await this.access.findOne({
-      where: {
-        user_id: userId,
-        comic_id: comicId,
-        chapter_id: chapterId,
-        expired_at: {
-          [Op.gt]: new Date(),
+    return await this.cacheManager.wrap(cacheKey, () =>
+      this.access.findOne({
+        where: {
+          user_id: userId,
+          comic_id: comicId,
+          chapter_id: chapterId,
+          expired_at: {
+            [Op.gt]: new Date(),
+          },
         },
+      }),
+    );
+  }
+
+  async addAnonymousReadHistory(comicId: number, chapterId: number) {
+    const comic = await this.comic.findOne({
+      where: {
+        comic_id: comicId,
       },
     });
+
+    if (!comic) {
+      return null;
+    }
+
+    const chapter = await this.chapter.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!chapter) {
+      return null;
+    }
+    const result = await this.sequelize.transaction(async (t) => {
+      const author = await this.user.findOne({
+        where: {
+          user_id: comic.user_id,
+        },
+      });
+
+      author.wallet_balance += 2.5;
+
+      await author.save({
+        transaction: t,
+      });
+
+      comic.views += 1;
+      await comic.save({
+        transaction: t,
+      });
+
+      chapter.views += 1;
+      await chapter.save({
+        transaction: t,
+      });
+
+      await this.transaction.create(
+        {
+          user_id: comic.user_id,
+          comic_id: chapter.comic_id,
+          chapter_id: chapter.chapter_id,
+          amount: 2.5,
+          type: 'sell-comic',
+          status: 'success',
+        },
+        {
+          transaction: t,
+        },
+      );
+
+      return null;
+    });
+
+    return result;
   }
 
   async addReadHistory(
@@ -356,22 +466,24 @@ export class ReaderService {
   }
 
   async getFavoriteStatus(firebaseUid: string, chapterId: number) {
-    const favorites = await this.favorites.findOne({
-      include: [
-        {
-          model: User,
-          as: 'user',
-          where: {
-            firebase_uid: firebaseUid,
+    const cacheKey = `favorite_status_${firebaseUid}_${chapterId}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const favorites = await this.favorites.findOne({
+        include: [
+          {
+            model: User,
+            as: 'user',
+            where: {
+              firebase_uid: firebaseUid,
+            },
           },
+        ],
+        where: {
+          chapter_id: chapterId,
         },
-      ],
-      where: {
-        chapter_id: chapterId,
-      },
+      });
+      return favorites ? true : false;
     });
-
-    return favorites ? true : false;
   }
 
   async toggleFavorite(firebaseUid: string, chapterId: number) {
@@ -422,20 +534,23 @@ export class ReaderService {
   }
 
   async getChapterComments(chapterId: number, skip: number, limit: number) {
-    return await this.comments.findAll({
-      include: [
-        {
-          model: User,
-          as: 'user',
+    const cacheKey = `chapter_comments_${chapterId}_${skip}_${limit}`;
+    return await this.cacheManager.wrap(cacheKey, () =>
+      this.comments.findAll({
+        include: [
+          {
+            model: User,
+            as: 'user',
+          },
+        ],
+        where: {
+          chapter_id: chapterId,
         },
-      ],
-      where: {
-        chapter_id: chapterId,
-      },
-      order: [['created_at', 'DESC']],
-      offset: skip,
-      limit: limit,
-    });
+        order: [['created_at', 'DESC']],
+        offset: skip,
+        limit: limit,
+      }),
+    );
   }
 
   async addChapterComment(

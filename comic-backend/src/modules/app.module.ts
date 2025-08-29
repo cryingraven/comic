@@ -8,19 +8,33 @@ import { UserModule } from 'src/features/users/user.module';
 import { ReaderModule } from 'src/features/reader/reader.module';
 import { PaymentModule } from 'src/features/payment/payment.module';
 import { StorageService } from 'src/services/storage.service';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { FileModule } from 'src/features/file/file.module';
 import { PublicModule } from 'src/features/public/public.module';
 import { CMSModule } from 'src/features/cms/cms.module';
+import KeyvRedis from '@keyv/redis';
+import { CacheableMemory, Keyv } from 'cacheable';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    CacheModule.register({
-      ttl: 5000,
+    CacheModule.registerAsync({
       isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ttl: 3000,
+        isGlobal: true,
+        stores: [
+          new KeyvRedis(configService.get<string>('REDIS_URI')),
+          new Keyv({
+            store: new CacheableMemory({ ttl: 3000, lruSize: 5000 }),
+          }),
+        ],
+      }),
     }),
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
@@ -70,7 +84,14 @@ import { CMSModule } from 'src/features/cms/cms.module';
     CMSModule,
   ],
   controllers: [AppController],
-  providers: [AppService, StorageService],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+    AppService,
+    StorageService,
+  ],
   exports: [StorageService],
 })
 export class AppModule {

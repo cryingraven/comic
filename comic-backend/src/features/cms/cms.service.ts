@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { generateKeyPairSync } from 'crypto';
+import { Cache } from 'cache-manager';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { EditComicDTO, SaveChapterDTO, SaveComicDTO } from 'src/dto/cms.dto';
@@ -35,16 +36,18 @@ export default class CMSService {
     private userBankAccountModel: typeof UserBankAccount,
     @InjectModel(ReadHistory)
     private readHistoryModel: typeof ReadHistory,
-    private sequelize: Sequelize,
+    private readonly sequelize: Sequelize,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
-
   async getComicsByAuthorFirebaseId(
     authorFirebaseId: string,
     skip: number,
     limit: number,
   ) {
-    const [results, metadata] = await this.sequelize.query(
-      `
+    const cacheKey = `comics_by_author_${authorFirebaseId}_${skip}_${limit}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const [results, metadata] = await this.sequelize.query(
+        `
       SELECT
         c.*,
         COUNT(ch.chapter_id) AS total_chapters
@@ -62,41 +65,50 @@ export default class CMSService {
         c.created_at DESC
       LIMIT :limit OFFSET :skip
     `,
-      {
-        replacements: {
-          authorFirebaseId,
-          skip: parseInt(skip.toString()),
-          limit: parseInt(limit.toString()),
+        {
+          replacements: {
+            authorFirebaseId,
+            skip: parseInt(skip.toString()),
+            limit: parseInt(limit.toString()),
+          },
         },
-      },
-    );
+      );
 
-    return results;
-  }
-
-  async getChaptersByComicId(comicId: number, skip: number, limit: number) {
-    const result = await this.chapterModel.findAndCountAll({
-      where: {
-        comic_id: comicId,
-      },
-      limit: parseInt(limit.toString()),
-      offset: parseInt(skip.toString()),
-      order: [['created_at', 'DESC']],
+      return results;
     });
+  }
+  async getChaptersByComicId(comicId: number, skip: number, limit: number) {
+    const cacheKey = `chapters_by_comic_${comicId}_${skip}_${limit}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const result = await this.chapterModel.findAndCountAll({
+        where: {
+          comic_id: comicId,
+        },
+        limit: parseInt(limit.toString()),
+        offset: parseInt(skip.toString()),
+        order: [
+          ['created_at', 'DESC'],
+          ['chapter_no', 'DESC'],
+        ],
+      });
 
-    return result;
+      return result;
+    });
   }
 
   async getAllGenresForInput() {
-    const genres = await this.genreModel.findAll({
-      where: {
-        id: {
-          [Op.ne]: 27,
+    const cacheKey = 'all_genres_for_input';
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const genres = await this.genreModel.findAll({
+        where: {
+          id: {
+            [Op.ne]: 27,
+          },
         },
-      },
-    });
+      });
 
-    return genres;
+      return genres;
+    });
   }
 
   async createComic(comic: SaveComicDTO, userId: string) {
@@ -179,6 +191,7 @@ export default class CMSService {
     newChapter.fiat_price = chapter.fiat_price;
     newChapter.published_at = chapter.published_at;
     newChapter.comic_id = chapter.comic_id;
+    newChapter.chapter_no = chapter.chapter_no;
 
     const savedChapter = await newChapter.save();
 
@@ -283,6 +296,7 @@ export default class CMSService {
     updatedChapter.subtitle = chapter.subtitle;
     updatedChapter.image = chapter.image;
     updatedChapter.price = chapter.price;
+    updatedChapter.chapter_no = chapter.chapter_no;
     updatedChapter.fiat_price = chapter.fiat_price;
     updatedChapter.published_at = chapter.published_at;
     await updatedChapter.save();
@@ -308,42 +322,50 @@ export default class CMSService {
 
     return updatedChapter;
   }
-
   async getComicById(comicId: number) {
-    const comic = await this.comicModel.findOne({
-      where: {
-        comic_id: comicId,
-      },
+    const cacheKey = `comic_by_id_${comicId}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const comic = await this.comicModel.findOne({
+        where: {
+          comic_id: comicId,
+        },
+      });
+
+      if (!comic) {
+        throw new Error('Comic not found');
+      }
+
+      return comic;
     });
-
-    if (!comic) {
-      throw new Error('Comic not found');
-    }
-
-    return comic;
   }
 
   async getChapterById(chapterId: number) {
-    const chapter = await this.chapterModel.findOne({
-      where: {
-        chapter_id: chapterId,
-      },
+    const cacheKey = `chapter_by_id_${chapterId}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const chapter = await this.chapterModel.findOne({
+        where: {
+          chapter_id: chapterId,
+        },
+      });
+
+      if (!chapter) {
+        throw new Error('Chapter not found');
+      }
+
+      return chapter;
     });
-
-    if (!chapter) {
-      throw new Error('Chapter not found');
-    }
-
-    return chapter;
   }
 
   async getChapterPages(chapterId: number) {
-    const pages = await this.pageModel.findAll({
-      where: {
-        chapter_id: chapterId,
-      },
+    const cacheKey = `chapter_pages_${chapterId}`;
+    return this.cacheManager.wrap(cacheKey, async () => {
+      const pages = await this.pageModel.findAll({
+        where: {
+          chapter_id: chapterId,
+        },
+      });
+      return pages;
     });
-    return pages;
   }
 
   async unPublishComic(comicId: number, userId: string) {
@@ -374,6 +396,48 @@ export default class CMSService {
     unpublishedComic.status = 'unpublished';
     await unpublishedComic.save();
     return unpublishedComic;
+  }
+
+  async unpublishChapter(chapterId: number, userId: string) {
+    const checkChapter = await this.chapterModel.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!checkChapter) {
+      throw new Error('Chapter not found');
+    }
+
+    const checkComic = await this.comicModel.findOne({
+      where: {
+        comic_id: checkChapter.comic_id,
+      },
+    });
+
+    if (!checkComic) {
+      throw new Error('Comic not found');
+    }
+
+    const profileAuthor = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!profileAuthor) {
+      throw new Error('User not found');
+    }
+
+    if (profileAuthor.user_id !== checkComic.user_id) {
+      throw new Error('You are not the author of this comic');
+    }
+
+    const unpublishedChapter = checkChapter;
+    unpublishedChapter.published_at = null;
+    await unpublishedChapter.save();
+
+    return unpublishedChapter;
   }
 
   async getAuthorWalletBalanceTransaction(
@@ -548,6 +612,48 @@ export default class CMSService {
     await publishedComic.save();
 
     return publishedComic;
+  }
+
+  async publishComicChapter(chapterId: number, userId: string) {
+    const chapter = await this.chapterModel.findOne({
+      where: {
+        chapter_id: chapterId,
+      },
+    });
+
+    if (!chapter) {
+      throw new Error('Chapter Not Found');
+    }
+
+    const checkComic = await this.comicModel.findOne({
+      where: {
+        comic_id: chapter.comic_id,
+      },
+    });
+
+    if (!checkComic) {
+      throw new Error('Comic not found');
+    }
+
+    const profileAuthor = await this.userModel.findOne({
+      where: {
+        firebase_uid: userId,
+      },
+    });
+
+    if (!profileAuthor) {
+      throw new Error('User not found');
+    }
+
+    if (profileAuthor.user_id !== checkComic.user_id) {
+      throw new Error('You are not the author of this comic');
+    }
+
+    chapter.published_at = new Date();
+
+    await chapter.save();
+
+    return chapter;
   }
 
   async deleteComicAndAllData(comicId: number, userId: string) {

@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { start } from 'repl';
+import { Cache } from 'cache-manager';
 import { Op } from 'sequelize';
 import { Banner } from 'src/models/banner.model';
 import { Blog } from 'src/models/blog.model';
@@ -12,6 +13,7 @@ export default class PublicService {
     private blogModel: typeof Blog,
     @InjectModel(Banner)
     private bannerModel: typeof Banner,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async findBlogs(
@@ -21,24 +23,27 @@ export default class PublicService {
     tag: string | null,
   ) {
     const parsedSort = sort.split('::');
+    const cacheKey = `blogs:${skip}:${limit}:${sort}:${tag || 'all'}`;
 
-    if (tag) {
-      return await this.blogModel.findAll({
-        where: {
-          tags: {
-            [Op.like]: `%${tag}%`,
+    return this.cacheManager.wrap(cacheKey, async () => {
+      if (tag) {
+        return await this.blogModel.findAll({
+          where: {
+            tags: {
+              [Op.like]: `%${tag}%`,
+            },
           },
-        },
+          offset: parseInt(skip.toString()),
+          limit: parseInt(limit.toString()),
+          order: [[parsedSort[0], parsedSort[1]]],
+        });
+      }
+
+      return await this.blogModel.findAll({
         offset: parseInt(skip.toString()),
         limit: parseInt(limit.toString()),
         order: [[parsedSort[0], parsedSort[1]]],
       });
-    }
-
-    return await this.blogModel.findAll({
-      offset: parseInt(skip.toString()),
-      limit: parseInt(limit.toString()),
-      order: [[parsedSort[0], parsedSort[1]]],
     });
   }
 
@@ -46,29 +51,37 @@ export default class PublicService {
     if (!blogId) {
       throw new Error('Blog id is required');
     }
-    return await this.blogModel.findByPk(blogId);
+    const cacheKey = `blog:${blogId}`;
+
+    return this.cacheManager.wrap(cacheKey, async () => {
+      return await this.blogModel.findByPk(blogId);
+    });
   }
 
   async getActiveBannerByPosition(position: string) {
-    return await this.bannerModel.findAll({
-      where: {
-        position,
-        status: 'active',
-        [Op.or]: [
-          {
-            start_date: {
-              [Op.lte]: new Date(),
+    const cacheKey = `banners:${position}`;
+
+    return this.cacheManager.wrap(cacheKey, async () => {
+      return await this.bannerModel.findAll({
+        where: {
+          position,
+          status: 'active',
+          [Op.or]: [
+            {
+              start_date: {
+                [Op.lte]: new Date(),
+              },
+              end_date: {
+                [Op.gte]: new Date(),
+              },
             },
-            end_date: {
-              [Op.gte]: new Date(),
+            {
+              start_date: null,
+              end_date: null,
             },
-          },
-          {
-            start_date: null,
-            end_date: null,
-          },
-        ],
-      },
+          ],
+        },
+      });
     });
   }
 }

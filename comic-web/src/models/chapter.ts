@@ -1,6 +1,7 @@
 import { Access } from './access'
 
 export interface Chapter {
+	chapter_no: number | null
 	chapter_id: number
 	comic_id: number
 	title: string

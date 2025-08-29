@@ -38,6 +38,13 @@ export class Chapter extends Model {
   subtitle: string;
 
   @Column
+  chapter_no: number | null;
+
+  @Default('published')
+  @Column
+  status: string | null;
+
+  @Column
   image: string;
 
   @Default(0)

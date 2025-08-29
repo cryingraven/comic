@@ -215,6 +215,28 @@ export class CMSController {
   }
 
   @UseGuards(FirebaseGuard)
+  @Post('comics/publish-chapter/:chapterId')
+  async publishChapter(
+    @Req() userRequest: UserRequest,
+    @Param('chapterId') chapterId: number,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.publishComicChapter(chapterId, userId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @Delete('comics/chapter/:chapterId')
+  @UseGuards(FirebaseGuard)
+  async unpublishedChapter(
+    @Req() userRequest: UserRequest,
+    @Param('chapterId') chapterId: number,
+  ) {
+    const userId = userRequest.user.uid || '';
+    const data = await this.cmsService.unpublishChapter(chapterId, userId);
+    return BasicResponseDto.success('success', data);
+  }
+
+  @UseGuards(FirebaseGuard)
   @Post('comics/delete-all/:comicId')
   async deleteAllComic(
     @Req() userRequest: UserRequest,
