@@ -154,14 +154,14 @@ export default class AppService {
 
 	async publishChapter(chapterId: number) {
 		const response = await AppService._axios.post(
-			`/cms/comics/chapters/publish/${chapterId}`
+			`/cms/comics/publish-chapter/${chapterId}`
 		)
 		return response.data.data
 	}
 
 	async unpublishChapter(chapterId: number) {
 		const response = await AppService._axios.delete(
-			`/cms/comics/chapters/${chapterId}`
+			`/cms/comics/chapter/${chapterId}`
 		)
 		return response.data.data
 	}

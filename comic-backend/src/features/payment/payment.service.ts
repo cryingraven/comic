@@ -580,7 +580,7 @@ export class PaymentService {
                 },
               });
 
-              author.wallet_balance += payment.amount_to_add;
+              author.wallet_balance += extra.amount || 0;
 
               await author.save({
                 transaction: t,
@@ -589,7 +589,7 @@ export class PaymentService {
               await this.transactionModel.create(
                 {
                   user_id: payment.user_id,
-                  amount: payment.amount_to_add,
+                  amount: extra.amount || 0,
                   type: 'give-donation',
                   status: 'success',
                 },
@@ -601,7 +601,7 @@ export class PaymentService {
               await this.transactionModel.create(
                 {
                   user_id: author.user_id,
-                  amount: payment.amount_to_add,
+                  amount: extra.amount || 0,
                   type: 'receive-donation',
                   status: 'success',
                 },
