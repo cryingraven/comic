@@ -38,7 +38,7 @@ const ComicPage = () => {
 	const getChapters = async (key: string) => {
 		try {
 			const newChapters = await AppService.instance(store.token || '').get(key)
-			return newChapters
+			return newChapters['results']
 		} catch (e) {
 			console.log(e)
 			throw e

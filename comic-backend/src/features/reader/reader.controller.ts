@@ -61,8 +61,14 @@ export class ReaderController {
     @Query('limit') limit: number,
     @Query('order_by') sort: string,
   ): Promise<ArrayResponseDto> {
-    const data = await this.readerService.findChapters(id, skip, limit, sort);
-    return ArrayResponseDto.success('Chapters fetched successfully', data);
+    const [data, total] = await Promise.all([
+      this.readerService.findChapters(id, skip, limit, sort),
+      this.readerService.countChapters(id),
+    ]);
+    return BasicResponseDto.success('Chapters fetched successfully', {
+      results: data,
+      total,
+    });
   }
 
   @Get('comics/:id/chapters-with-access')
@@ -76,14 +82,21 @@ export class ReaderController {
     @Req() req: UserRequest,
   ): Promise<ArrayResponseDto> {
     const firebaseUid = req.user.uid;
-    const data = await this.readerService.findChaptersWithAccess(
-      firebaseUid,
-      id,
-      skip,
-      limit,
-      sort,
-    );
-    return ArrayResponseDto.success('Chapters fetched successfully', data);
+    const [data, total] = await Promise.all([
+      this.readerService.findChaptersWithAccess(
+        firebaseUid,
+        id,
+        skip,
+        limit,
+        sort,
+      ),
+      this.readerService.countChapters(id),
+    ]);
+
+    return BasicResponseDto.success('Chapters fetched successfully', {
+      results: data,
+      total,
+    });
   }
 
   @CacheTTL(60)

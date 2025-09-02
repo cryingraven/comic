@@ -118,6 +118,56 @@ export class ReaderService {
     }
   }
 
+  async countComics(
+    genre: string | null,
+    authorId: string | null,
+    search: string | null | undefined = null,
+  ) {
+    const filter = {};
+
+    if (genre) {
+      filter[Op.or] = [
+        {
+          genre: genre,
+        },
+        {
+          subgenres: {
+            [Op.like]: `%${genre}%`,
+          },
+        },
+      ];
+    }
+
+    if (authorId) {
+      filter['user_id'] = authorId;
+    }
+
+    if (search) {
+      filter['title'] = {
+        [Op.like]: `%${search}%`,
+      };
+    }
+
+    filter['status'] = {
+      [Op.ne]: 'unpublished',
+    };
+
+    filter['published_at'] = {
+      [Op.or]: {
+        [Op.eq]: null,
+        [Op.lte]: new Date(),
+      },
+    };
+
+    const cacheKey = `count_comics_${genre}_${authorId}_${search}`;
+
+    return this.cacheManager.wrap(cacheKey, () =>
+      this.comic.count({
+        where: filter,
+      }),
+    );
+  }
+
   getComicById(id: number) {
     return this.cacheManager.wrap(`comic_${id}`, () =>
       this.comic.findOne({
@@ -128,6 +178,7 @@ export class ReaderService {
       }),
     );
   }
+
   findChapters(
     comicId: number,
     skip: number = 0,
@@ -139,6 +190,14 @@ export class ReaderService {
 
     return this.cacheManager.wrap(cacheKey, () =>
       this.chapter.findAll({
+        include: [
+          {
+            model: Comic,
+            where: {
+              comic_id: comicId,
+            },
+          },
+        ],
         where: {
           comic_id: comicId,
           published_at: {
@@ -151,6 +210,21 @@ export class ReaderService {
           [parsedSort[0], parsedSort[1]],
           ['chapter_no', parsedSort[1]],
         ],
+      }),
+    );
+  }
+
+  async countChapters(comicId: number) {
+    const cacheKey = `count_chapters_${comicId}`;
+
+    return this.cacheManager.wrap(cacheKey, () =>
+      this.chapter.count({
+        where: {
+          comic_id: comicId,
+          published_at: {
+            [Op.ne]: null,
+          },
+        },
       }),
     );
   }
@@ -185,6 +259,12 @@ export class ReaderService {
               comic_id: comicId,
             },
             required: false,
+          },
+          {
+            model: Comic,
+            where: {
+              comic_id: comicId,
+            },
           },
         ],
         where: {
