@@ -293,6 +293,37 @@ export class ReaderService {
     );
   }
 
+  async getChapterByIdWithAccess(chapterId: number, firebaseUid: string) {
+    const user = await this.user.findOne({
+      where: {
+        firebase_uid: firebaseUid,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return this.cacheManager.wrap(`chapter_${chapterId}-${firebaseUid}`, () =>
+      this.chapter.findOne({
+        include: [
+          {
+            model: Access,
+            where: {
+              user_id: user.user_id,
+            },
+            required: false,
+          },
+          {
+            model: Comic,
+          },
+        ],
+        where: {
+          chapter_id: chapterId,
+        },
+      }),
+    );
+  }
+
   getPages(chapterId: number) {
     return this.cacheManager.wrap(`pages_${chapterId}`, () =>
       this.page.findAll({

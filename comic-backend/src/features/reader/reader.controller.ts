@@ -109,6 +109,22 @@ export class ReaderController {
     return BasicResponseDto.success('Chapter fetched successfully', data);
   }
 
+  @CacheTTL(60)
+  @Get('chapters/:chapterId/with-access')
+  @UseInterceptors(CacheInterceptor)
+  @UseGuards(FirebaseGuard)
+  async chapterWithAccess(
+    @Param('chapterId') chapterId: number,
+    @Req() req: UserRequest,
+  ): Promise<BasicResponseDto> {
+    const firebaseUid = req.user.uid;
+    const data = await this.readerService.getChapterByIdWithAccess(
+      chapterId,
+      firebaseUid,
+    );
+    return BasicResponseDto.success('Chapter fetched successfully', data);
+  }
+
   @CacheTTL(300)
   @Get('pages/:chapterId')
   @UseInterceptors(CacheInterceptor)
